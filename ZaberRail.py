@@ -1,7 +1,7 @@
 from zaber_motion import Library, DeviceDbSourceType, Units, MotionLibException
 from zaber_motion.ascii import Connection
 
-import Logger
+from Logger import Logger
 import argparse
 
 class ZaberRail():
@@ -10,7 +10,7 @@ class ZaberRail():
         self.device = None
         self.axis = None
         self.connection = None
-        self.logger = Logger()
+        self.logger = Logger("Zaber-X-LRT1500BL-E08C", "./zaber.log")
 
     def __del__(self):
         self.disconnect()
@@ -20,7 +20,7 @@ class ZaberRail():
             self.connection.close()
             self.connection = None
 
-    def connect(self, port="COM5"):
+    def connect(self, port="/dev/tty.usbserial-A10NH07T"):
         self.connection = Connection.open_serial_port(port)
         self.connection.enable_alerts()
 
@@ -43,7 +43,7 @@ class ZaberRail():
     def basic_move(self):
         try:
             # Move to 50cm
-            self.axis.move_absolute(50, Units.LENGTH_CENTIMETRES)
+            self.axis.move_absolute(10, Units.LENGTH_CENTIMETRES)
             # Move by an additional cm
             self.axis.move_relative(5, Units.LENGTH_CENTIMETRES)
             # Move back to 0
@@ -89,7 +89,7 @@ def main():
         "-p",
         "--port",
         type=str,
-        default="COM3",
+        default="/dev/tty.usbserial-A10NH07T",
         help="The serial port to connect to the Zaber rail"
     )
 

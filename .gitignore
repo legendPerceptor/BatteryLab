@@ -1,0 +1,3 @@
+*.log
+device-db-store/
+__pycache__

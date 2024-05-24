@@ -7,7 +7,7 @@ class Logger():
         self.device_name = device_name
         self.logger = self.setup_logger(device_name, log_path)
 
-    def setup_logger(self, name, log_file, level=logging.INFO):
+    def setup_logger(self, name, log_file, level=logging.DEBUG):
         """To setup as many loggers as you want"""
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
         handler = logging.FileHandler(log_file)     

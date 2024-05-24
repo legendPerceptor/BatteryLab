@@ -2,7 +2,7 @@ from mecademicpy.robot import Robot
 from mecademicpy import tools
 
 import mecademicpy.robot as mdr
-import Logger
+from Logger import Logger
 
 class Meca500():
 
@@ -12,8 +12,32 @@ class Meca500():
         self.logger = Logger("Meca500", log_path=log_path)
 
     def __del__(self):
+        if self.robot is not None:
+            self.logger.info("Exit the robot in __del__ function")
+            self.exitRobot()
+
+    def exitRobot(self):
         self.robot.DeactivateRobot()
+        self.robot.Disconnect()
+        self.robot = None
         self.logger.info("The robot is deactivated!")
+
+    def draw_square(self):
+        try:
+            self.robot.MovePose(200, 0, 300, 0, 90, 0)
+            self.robot.MovePose(200, 100, 300, 0, 90, 0)
+            self.robot.MovePose(200, 100, 100, 0, 90, 0)
+            self.robot.MovePose(200, -100, 100, 0, 90, 0)
+            self.robot.MovePose(200, -100, 300, 0, 90, 0)
+            self.robot.MovePose(200, 0, 300, 0, 90, 0)
+            self.logger.info('Commands for drawing a square sent. Robot should now be moving.')
+            self.robot.Delay(1)
+            self.robot.MoveJoints(0, -60, 60, 0, 0, 0)
+            self.logger.info('Waiting for robot to finish moving...')
+            self.robot.WaitIdle(60)
+            self.logger.info('Robot finished drawing square.')
+        except Exception as e:
+            self.logger.info(f"Drawing square has an error: {e}")
 
     def initializeRobot(self):
         try:
@@ -29,13 +53,7 @@ class Meca500():
             self.robot.WaitHomed()
             self.logger.info("Meca500 is homed and ready!")
             if tools.robot_model_is_meca500(self.robot.GetRobotInfo().robot_model):
-                self.logger.info("The robot is confirmed to be Meca500! Drawing a rectangle!")
-                self.robot.MovePose(200, 0, 300, 0, 90, 0)
-                self.robot.MovePose(200, 100, 300, 0, 90, 0)
-                self.robot.MovePose(200, 100, 100, 0, 90, 0)
-                self.robot.MovePose(200, -100, 100, 0, 90, 0)
-                self.robot.MovePose(200, -100, 300, 0, 90, 0)
-                self.robot.MovePose(200, 0, 300, 0, 90, 0)
+                self.logger.info("The robot is confirmed to be Meca500!")
         except Exception as exception:
             if self.robot.GetStatusRobot().error_status:
                 self.logger.info(exception)
@@ -48,3 +66,5 @@ class Meca500():
 if __name__ == "__main__":
     meca500_robot = Meca500()
     meca500_robot.initializeRobot()
+    meca500_robot.draw_square()
+    meca500_robot.exitRobot()
