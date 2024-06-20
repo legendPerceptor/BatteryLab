@@ -1,5 +1,6 @@
 from zaber_motion import Library, DeviceDbSourceType, Units, MotionLibException
 from zaber_motion.ascii import Connection
+from zaber_motion.exceptions.connection_failed_exception import ConnectionFailedException
 
 from Logger import Logger
 import argparse
@@ -21,19 +22,28 @@ class ZaberRail():
             self.connection = None
 
     def connect(self, port="/dev/tty.usbserial-A10NH07T"):
-        self.connection = Connection.open_serial_port(port)
-        self.connection.enable_alerts()
+        try:
+            self.connection = Connection.open_serial_port(port)
+            self.connection.enable_alerts()
+        except ConnectionFailedException as e:
+            self.logger.error(f"Zaber Rail Connectioned Failed: {e}")
+            return False
 
         device_list = self.connection.detect_devices()
         print(f"Found {len(device_list)} devices")
         self.device = device_list[0]
         self.axis = self.device.get_axis(1)
+        print(f"axis obtained: {self.axis}")
         if not self.axis.is_homed():
             self.axis.home()
+        return True
     
     def print_io_info(self):
         if self.device is None:
-            self.connect()
+            ok = self.connect()
+            if not ok:
+                print("zaber rail cannot be connected!")
+                exit()
         io_info = self.device.io.get_channels_info()
         print("Number of analog outputs:", io_info.number_analog_outputs)
         print("Number of analog inputs:", io_info.number_analog_inputs)
@@ -41,6 +51,7 @@ class ZaberRail():
         print("Number of digital inputs:", io_info.number_digital_inputs)
 
     def basic_move(self):
+        """for debugging rail movement only, don't use this function in production"""
         try:
             # Move to 50cm
             self.axis.move_absolute(10, Units.LENGTH_CENTIMETRES)
@@ -54,7 +65,10 @@ class ZaberRail():
 
     def move(self, pos_abs): 
         if self.axis is None:
-            self.connect()
+            ok = self.connect()
+            if not ok:
+                print("zaber rail cannot be connected!")
+                exit()
         pos_cur = self.axis.get_position(Units.LENGTH_CENTIMETRES)
         self.logger.debug(f"[REL_MOVE] current pos: {pos_cur} cm, moving to the absolute position: {pos_abs}")
         self.axis.move_absolute(pos_abs, Units.LENGTH_CENTIMETRES)
@@ -97,7 +111,10 @@ def main():
     port = args.port
 
     zaber_rail = ZaberRail()
-    zaber_rail.connect(port)
+    ok = zaber_rail.connect(port)
+    if not ok:
+        print("zaber rail cannot be connected!")
+        exit()
     zaber_rail.basic_move()
     try:
         while True:
