@@ -6,10 +6,27 @@ from Logger import Logger
 from SuctionPump import SuctionPump
 
 from enum import Enum
+from pydantic import BaseModel
+from typing import List
+from AssemblyRobot import Components, AssemblySteps
+from AutoCorrection import AutoCorrection
 
 class RobotTool(Enum):
     GRIPPER = 1
     SUCTION = 2
+
+class Meca500RobotConstants(BaseModel):
+    GRIP_F: int = 10
+    GRIP_VEL: int = 20
+    L_VEL: int = 10
+    J_VEL: int = 10
+    TCP_GP: List[float] = [49.5, 0, 13.95, 45, 0, 0]
+    TCP_SK: List[float] = [34.479, 11.2, 84.3116, 0, 30, 0]
+    HOME_GP_J: List[float] = [0, 0, 0, 0, 0, 0]
+    HOME_SK_J: List[float] = [-90, 0, 0, 0, 60, 0]
+    HOME_POST_J: List[float] = [0, 0, 0, 0, 0, 0]
+    HOME_SK_J: List[float] = [0, 0 ,0 ,0 ,0 ,0]
+    SNAP_SHOT_GRAB_PO: List[float] = [ -29.527, 200.934, 91.81, -175.0, 0.0, 90.0]
 
 class Meca500():
 
@@ -25,16 +42,7 @@ class Meca500():
         # Constants
         self.LIN_SPEED = 50
         self.SLOW_DOWN = 30
-        self.RobotConstants = {
-            "GRIP_F": 10,
-            "GRIP_VEL": 20,
-            "L_VEL": 10,
-            "J_VEL": 10,
-            "TCP_GP": [49.5, 0, 13.95, 45, 0, 0],
-            "TCP_SK": [34.479, 11.2, 84.3116, 0, 30, 0],
-            "HOME_GP_J": [0, 0, 0, 0, 0, 0],
-            "HOME_SK_J": [-90, 0, 0, 0, 60, 0],
-        }
+        self.RobotConstants = Meca500RobotConstants()
 
     def __del__(self):
         if self.robot is not None:
@@ -63,10 +71,10 @@ class Meca500():
             if tools.robot_model_is_meca500(self.robot.GetRobotInfo().robot_model):
                 self.logger.info("The robot is confirmed to be Meca500!")
                 # TODO: Set Gripper Force, Joint Velocity and other parameters
-                self.robot.SetGripperForce(self.RobotConstants["GRIP_F"])
-                self.robot.SetGripperVel(self.RobotConstants["GRIP_VEL"])
-                self.robot.SetCartLinVel(self.RobotConstants["L_VEL"])
-                self.robot.SetJointVel(self.RobotConstants["J_VEL"])
+                self.robot.SetGripperForce(self.RobotConstants.GRIP_F)
+                self.robot.SetGripperVel(self.RobotConstants.GRIP_VEL)
+                self.robot.SetCartLinVel(self.RobotConstants.L_VEL)
+                self.robot.SetJointVel(self.RobotConstants.J_VEL)
                 self.robot.SetJointAcc(20)
                 self.robot.MoveJoints(0, 0, 0, 0, 0, 0)
                 self.logger.info("Assembly Meca500 is initilized!")
@@ -87,16 +95,19 @@ class Meca500():
 
     def change_tool(self, tool_name: RobotTool):
         if tool_name == RobotTool.GRIPPER:
-            self.robot.SetTRF(*self.RobotConstants["TCP_GP"])
+            self.robot.SetTRF(*self.RobotConstants.TCP_GP)
             self.status["Tool"] = RobotTool.GRIPPER
-            self.home = self.RobotConstants["HOME_GP_J"]
+            self.home = self.RobotConstants.HOME_GP_J
         elif tool_name == RobotTool.SUCTION:
-            self.robot.SetTRF(*self.RobotConstants["TCP_SK"])
+            self.robot.SetTRF(*self.RobotConstants.TCP_SK)
             self.status["Tool"] = RobotTool.SUCTION
-            self.home = self.RobotConstants["HOME_SK_J"]
+            self.home = self.RobotConstants.HOME_SK_J
     
     def move_home(self):
         self.robot.MoveJoints(*self.home)
+
+    def move_for_snapshot(self):
+        self.robot.MovePose(*self.RobotConstants.SNAP_SHOT_GRAB_PO)
 
     def smart_grab(self):
         if self.status["Tool"] == RobotTool.GRIPPER:
@@ -111,6 +122,10 @@ class Meca500():
             self.robot.WaitGripperMoveCompletion()
         elif self.status["Tool"] == RobotTool.SUCTION:
             self.suction_pump.suction_off()
+
+    def move_after_drop(self):
+        self.robot.MoveJoints(*self.RobotConstants.HOME_POST_J)
+        self.robot.MoveJoints(*self.RobotConstants.HOME_SK_J)
 
     def pick_place(self, grab_pos, is_grab = True):
         self.robot.MovePose(grab_pos[0], grab_pos[1], 40, grab_pos[3], grab_pos[4], grab_pos[5])

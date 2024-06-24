@@ -63,6 +63,9 @@ class ZaberRail():
         except MotionLibException as e:
             print(f"Failed to move Zaber rail with error: {e}")
 
+    def move_home(self):
+        self.axis.move_absolute(0, Units.LENGTH_CENTIMETRES)
+
     def move(self, pos_abs): 
         if self.axis is None:
             ok = self.connect()
