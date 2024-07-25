@@ -3,3 +3,5 @@ device-db-store/
 __pycache__
 drafts/
 logs/
+3DPrint/
+.DS_Store

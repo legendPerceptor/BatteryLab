@@ -5,6 +5,9 @@ from zaber_motion.exceptions.connection_failed_exception import ConnectionFailed
 from Logger import Logger
 import argparse
 
+import serial
+from serial.tools import list_ports
+
 class ZaberRail():
     def __init__(self):
         Library.enable_device_db_store("./device-db-store")
@@ -106,15 +109,38 @@ def main():
         "-p",
         "--port",
         type=str,
-        default="/dev/tty.usbserial-A10NH07T",
+        default="usbserial-A10NH07T",
         help="The serial port to connect to the Zaber rail"
     )
 
     args = parser.parse_args()
-    port = args.port
+
+    usb_ports = list_ports.comports()
+    print(f'User Argument Port: {args.port}')
+    print("please select the correct port by typing the index number:")
+    port_index = -1
+    for i, port in enumerate(usb_ports):
+        print(f'{i}> name: {port.name}, device: {port.device}')
+        if args.port == port.device:
+            port_index = i
+
+    while True:
+        port_index_str = input(f"[default is {port_index}]: ").strip().lower()
+        flag = True
+        if port_index_str != '':
+            try:
+                port_index = int(port_index_str)
+            except ValueError as e:
+                print("Please provide a proper serial port to proceed!")
+                flag = False
+        if flag:
+            break
+    print(f"selected port index: {port_index}")
+
+    selected_port = usb_ports[port_index].device if port_index != -1 else args.port
 
     zaber_rail = ZaberRail()
-    ok = zaber_rail.connect(port)
+    ok = zaber_rail.connect(selected_port)
     if not ok:
         print("zaber rail cannot be connected!")
         exit()
