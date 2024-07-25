@@ -1,11 +1,14 @@
 import logging
+import os
 from pathlib import Path
 
 class Logger():
     
-    def __init__(self, device_name:str, log_path: Path):
-        self.device_name = device_name
-        self.logger = self.setup_logger(device_name, log_path)
+    def __init__(self, logger_name:str, log_path: Path, logger_filename: str):
+        self.logger_name = logger_name
+        if not os.path.exists(log_path):
+            os.makedirs(log_path)
+        self.logger = self.setup_logger(logger_name, Path(log_path) / logger_filename)
 
     def setup_logger(self, name, log_file, level=logging.DEBUG):
         """To setup as many loggers as you want"""

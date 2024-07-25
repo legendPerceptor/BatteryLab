@@ -3,3 +3,4 @@ zaber-motion
 pyserial
 pydantic
 opencv-contrib-python
+pyudev

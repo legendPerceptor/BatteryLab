@@ -5,3 +5,4 @@ drafts/
 logs/
 3DPrint/
 .DS_Store
+ros2_ws/lab_venv

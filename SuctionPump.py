@@ -1,6 +1,7 @@
 import serial
 from serial.tools import list_ports
 from Logger import Logger
+from utils import get_proper_port_for_device, SupportedDevices
 
 class SuctionPump():
 
@@ -44,27 +45,9 @@ class SuctionPump():
         return True
     
 def main():
-    logger = Logger("suction_pump_test", "logs/suction_pump_test.log")
-    usb_ports = list_ports.comports()
-    print("please select the correct port by typing the index number:")
-    for i, port in enumerate(usb_ports):
-        print(f'{i}: {port.name}')
-        if 'usbserial' in port.name or 'COM' in port.name:
-            port_index = i
-    
-    while True:
-        port_index_str = input(f"[default is {port_index}]: ").strip().lower()
-        flag = True
-        if port_index_str != '':
-            try:
-                port_index = int(port_index_str)
-            except ValueError as e:
-                print("Please provide a proper serial port to proceed!")
-                flag = False
-        if flag:
-            break
-    print(f"selected port index: {port_index}")
-    suctionPump = SuctionPump(logger, {}, vacuum_port=usb_ports[port_index].device)
+    logger = Logger("suction_pump_test", "logs", "suction_pump_test.log")
+    selected_port = get_proper_port_for_device(SupportedDevices.SuctionPump)
+    suctionPump = SuctionPump(logger, {}, vacuum_port=selected_port)
     suctionPump.connect_pump()
     try:
         while True:

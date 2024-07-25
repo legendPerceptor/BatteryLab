@@ -3,18 +3,20 @@ from zaber_motion.ascii import Connection
 from zaber_motion.exceptions.connection_failed_exception import ConnectionFailedException
 
 from Logger import Logger
-import argparse
 
 import serial
-from serial.tools import list_ports
+import os
+from pathlib import Path
+from utils import get_proper_port_for_device, SupportedDevices
 
 class ZaberRail():
-    def __init__(self):
+    def __init__(self, port):
         Library.enable_device_db_store("./device-db-store")
         self.device = None
         self.axis = None
         self.connection = None
-        self.logger = Logger("Zaber-X-LRT1500BL-E08C", "./zaber.log")
+        self.logger = Logger("Zaber-X-LRT1500BL-E08C", Path(os.getcwd())/"logs", "zaber.log")
+        self.port = port
 
     def __del__(self):
         self.disconnect()
@@ -24,14 +26,14 @@ class ZaberRail():
             self.connection.close()
             self.connection = None
 
-    def connect(self, port="/dev/tty.usbserial-A10NH07T"):
+    def connect(self):
         try:
-            self.connection = Connection.open_serial_port(port)
+            self.connection = Connection.open_serial_port(self.port)
             self.connection.enable_alerts()
         except ConnectionFailedException as e:
+            print(f"Zaber Rail Connectioned Failed: {e}")
             self.logger.error(f"Zaber Rail Connectioned Failed: {e}")
             return False
-
         device_list = self.connection.detect_devices()
         print(f"Found {len(device_list)} devices")
         self.device = device_list[0]
@@ -99,57 +101,16 @@ def drive_rail(rail):
             print("Invalid input. Please enter a valid position value.")
 
 def main():
-
-    parser = argparse.ArgumentParser(
-        description="zaber rail testing program",
-        formatter_class=argparse.RawDescriptionHelpFormatter
-    )
-
-    parser.add_argument(
-        "-p",
-        "--port",
-        type=str,
-        default="usbserial-A10NH07T",
-        help="The serial port to connect to the Zaber rail"
-    )
-
-    args = parser.parse_args()
-
-    usb_ports = list_ports.comports()
-    print(f'User Argument Port: {args.port}')
-    print("please select the correct port by typing the index number:")
-    port_index = -1
-    for i, port in enumerate(usb_ports):
-        print(f'{i}> name: {port.name}, device: {port.device}')
-        if args.port == port.device:
-            port_index = i
-
-    while True:
-        port_index_str = input(f"[default is {port_index}]: ").strip().lower()
-        flag = True
-        if port_index_str != '':
-            try:
-                port_index = int(port_index_str)
-            except ValueError as e:
-                print("Please provide a proper serial port to proceed!")
-                flag = False
-        if flag:
-            break
-    print(f"selected port index: {port_index}")
-
-    selected_port = usb_ports[port_index].device if port_index != -1 else args.port
-
-    zaber_rail = ZaberRail()
-    ok = zaber_rail.connect(selected_port)
+    selected_port = get_proper_port_for_device(SupportedDevices.ZaberLinearRail)
+    zaber_rail = ZaberRail(port=selected_port)
+    ok = zaber_rail.connect()
     if not ok:
         print("zaber rail cannot be connected!")
         exit()
-    zaber_rail.basic_move()
     try:
         while True:
-            input_str = input("Press [Enter] to reset the rail, [0] to home the rail, [M] to drive rail: ").strip().lower()
+            input_str = input("Press [Enter] to quit, [0] to home the rail, [M] to drive rail: ").strip().lower()
             if input_str == '':
-                zaber_rail.axis.home()
                 break
             elif input_str == '0':
                 zaber_rail.axis.home()

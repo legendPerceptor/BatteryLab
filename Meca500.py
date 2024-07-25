@@ -30,10 +30,10 @@ class Meca500RobotConstants(BaseModel):
 
 class Meca500():
 
-    def __init__(self, logger = None, log_path="./Meca500.log", robot_address="192.168.0.101", vacuum_port="COM7"):
+    def __init__(self, logger = None, log_path="logs", logger_filename="Meca500.log", robot_address="192.168.0.101", vacuum_port="COM7"):
         self.robot = Robot()
         self.robot_address = robot_address
-        self.logger = Logger("Meca500", log_path=log_path) if logger is None else logger
+        self.logger = Logger("Meca500", log_path=log_path, logger_filename=logger_filename) if logger is None else logger
 
         # Status
         self.status = dict(Tool=None, Progress=dict(Initiate=0, LastStep=None), Initiated=False, Vacuumed=False, Grabbed=True, Aborted=False)
