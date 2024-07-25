@@ -1,5 +1,6 @@
 import os
-import pyudev
+import platform
+import pyudev # Linux only
 from pathlib import Path
 from serial.tools import list_ports
 from enum import Enum
@@ -20,12 +21,21 @@ def get_proper_port_for_device(device_name: SupportedDevices):
     # list available devices
     for i, port in enumerate(usb_ports):
         print(f'{i}> name: {port.name}, device: {port.device}')
-    context = pyudev.Context()
-    tty_devices = [device for device in context.list_devices(subsystem='tty') if 'ttyUSB' in device.device_node]
+    
     selected_port = ""
-    for tty in tty_devices:
-        if tty.get('ID_SERIAL') == DeviceToSerialDict[device_name]:
-            selected_port = tty.device_node
+    if platform.system() == 'Linux':
+        context = pyudev.Context()
+        tty_devices = [device for device in context.list_devices(subsystem='tty') if 'ttyUSB' in device.device_node]
+        for tty in tty_devices:
+            if tty.get('ID_SERIAL') == DeviceToSerialDict[device_name]:
+                selected_port = tty.device_node
+    elif platform.system() == 'Darwin': # MacBook
+        for port in usb_ports:
+            if 'usbserial' in port.device:
+                if device_name == SupportedDevices.ZaberLinearRail and port.serial_number == 'A10NH07T':
+                    selected_port = port.device
+                if device_name == SupportedDevices.SuctionPump and port.serial_number != 'A10NH07T':
+                    selected_port = port.device
 
     while True:
         port_index_str = input(f"[default is {selected_port}]: ").strip().lower()
