@@ -9,6 +9,14 @@ from pathlib import Path
 from ..helper.Logger import Logger
 from ..helper.utils import get_proper_port_for_device, SupportedDevices
 
+class ZaberRailConnectionError(Exception):
+    def __init__(self, message, error_code):
+        super().__init__(message)
+        self.error_code = error_code
+
+    def __str__(self):
+        return f"{self.args[0]} (Error code: {self.error_code})"
+
 class ZaberRail():
     def __init__(self, port):
         Library.enable_device_db_store("./device-db-store")
@@ -48,7 +56,7 @@ class ZaberRail():
             ok = self.connect()
             if not ok:
                 print("zaber rail cannot be connected!")
-                exit()
+                raise ZaberRailConnectionError("ZaberRail Connection failed when getting I/O info", 1000)
         io_info = self.device.io.get_channels_info()
         print("Number of analog outputs:", io_info.number_analog_outputs)
         print("Number of analog inputs:", io_info.number_analog_inputs)
@@ -57,6 +65,7 @@ class ZaberRail():
 
     def basic_move(self):
         """for debugging rail movement only, don't use this function in production"""
+        self.insure_connected()
         try:
             # Move to 50cm
             self.axis.move_absolute(10, Units.LENGTH_CENTIMETRES)
@@ -69,23 +78,31 @@ class ZaberRail():
             print(f"Failed to move Zaber rail with error: {e}")
 
     def move_home(self):
+        self.insure_connected()
         self.axis.move_absolute(0, Units.LENGTH_CENTIMETRES)
 
-    def move(self, pos_abs): 
+    def insure_connected(self):
         if self.axis is None:
             ok = self.connect()
             if not ok:
-                print("zaber rail cannot be connected!")
-                exit()
+                print("Cannot insure zaber rail is conected")
+                raise ZaberRailConnectionError("Cannot insure zaber rail is conected", 1001)
+
+    def move(self, pos_abs):
+        self.insure_connected()
         pos_cur = self.axis.get_position(Units.LENGTH_CENTIMETRES)
         self.logger.debug(f"[REL_MOVE] current pos: {pos_cur} cm, moving to the absolute position: {pos_abs}")
         self.axis.move_absolute(pos_abs, Units.LENGTH_CENTIMETRES)
 
     def rel_move(self, pos_rel):
+        self.insure_connected()
         pos_cur = self.axis.get_position(Units.LENGTH_CENTIMETRES)
         self.logger.debug(f"[REL_MOVE] current pos: {pos_cur} cm, relatively moving {pos_rel}")
         self.axis.move_relative(pos_rel)
 
+    def get_cur_position(self):
+        self.insure_connected()
+        return self.axis.get_position(Units.LENGTH_CENTIMETRES)
 
 # below are for testing the zaber rail standalone.
 

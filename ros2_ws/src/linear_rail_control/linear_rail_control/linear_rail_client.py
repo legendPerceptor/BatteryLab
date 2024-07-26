@@ -6,7 +6,7 @@ from linear_rail_control.srv import MoveLinearRail
 class LinearRailClient(Node):
     def __init__(self):
         super().__init__('linear_rail_client')
-        self.cli = self.create_client(MoveLinearRail, 'move_linear_rail')
+        self.cli = self.create_client(MoveLinearRail, 'zaber/move_linear_rail')
         while not self.cli.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Service not available, waiting...')
         self.req = MoveLinearRail.Request()

@@ -3,42 +3,21 @@ from mecademicpy import tools
 
 import mecademicpy.robot as mdr
 from ..helper.Logger import Logger
+from ..helper.utils import get_proper_port_for_device, SupportedDevices
+
 from SuctionPump import SuctionPump
+from Constants import Meca500RobotConstants, RobotTool
 
-from enum import Enum
-from pydantic import BaseModel
-from typing import List
-from AssemblyRobot import Components, AssemblySteps
-from AutoCorrection import AutoCorrection
-
-class RobotTool(Enum):
-    GRIPPER = 1
-    SUCTION = 2
-
-class Meca500RobotConstants(BaseModel):
-    GRIP_F: int = 10
-    GRIP_VEL: int = 20
-    L_VEL: int = 10
-    J_VEL: int = 10
-    TCP_GP: List[float] = [49.5, 0, 13.95, 45, 0, 0]
-    TCP_SK: List[float] = [34.479, 11.2, 84.3116, 0, 30, 0]
-    HOME_GP_J: List[float] = [0, 0, 0, 0, 0, 0]
-    HOME_SK_J: List[float] = [-90, 0, 0, 0, 60, 0]
-    HOME_POST_J: List[float] = [0, 0, 0, 0, 0, 0]
-    HOME_SK_J: List[float] = [0, 0 ,0 ,0 ,0 ,0]
-    SNAP_SHOT_GRAB_PO: List[float] = [ -29.527, 200.934, 91.81, -175.0, 0.0, 90.0]
 
 class Meca500():
-
-    def __init__(self, logger = None, log_path="logs", logger_filename="Meca500.log", robot_address="192.168.0.101", vacuum_port="COM7"):
+    def __init__(self, logger = None, log_path="logs", logger_filename="Meca500.log", robot_address="192.168.0.101", vacuum_port=""):
         self.robot = Robot()
         self.robot_address = robot_address
         self.logger = Logger("Meca500", log_path=log_path, logger_filename=logger_filename) if logger is None else logger
-
         # Status
         self.status = dict(Tool=None, Progress=dict(Initiate=0, LastStep=None), Initiated=False, Vacuumed=False, Grabbed=True, Aborted=False)
+        self.suction_pump = SuctionPump(self.logger, self.status, vacuum_port=get_proper_port_for_device(SupportedDevices.SuctionPump))
         self.home = [0, 0, 0, 0, 0, 0]
-        self.suction_pump = SuctionPump(self.logger, self.status, vacuum_port)
         # Constants
         self.LIN_SPEED = 50
         self.SLOW_DOWN = 30
@@ -86,12 +65,14 @@ class Meca500():
                 self.robot.ResumeMotion()
             else:
                 raise
-        # Connect the suction pump
+        
         ok = self.suction_pump.connect_pump()
-        if ok:
-            self.logger.info("Suction pump is sucessfully connected!")
+        if not ok:
+            print("suction pump cannot be connected!")
+            self.logger.error("suction pump cannot be connected!")
         else:
-            self.logger.error("Cannot connect to the suction pump")
+            print("suction pump is successfully connected!")
+            self.logger.info("suction pump is successfully connected!")
 
     def change_tool(self, tool_name: RobotTool):
         if tool_name == RobotTool.GRIPPER:
@@ -145,7 +126,12 @@ class Meca500():
         self.robot.SetCartLinVel(self.LIN_SPEED)
         self.move_home()
         self.robot.WaitIdle()
-
+        # Connect the suction pump
+        ok = self.suction_pump.connect_pump()
+        if ok:
+            self.logger.info("Suction pump is sucessfully connected!")
+        else:
+            self.logger.error("Cannot connect to the suction pump")
     def draw_square(self):
         """For development purpose only, don't use in production"""
         try:
@@ -164,16 +150,8 @@ class Meca500():
         except Exception as e:
             self.logger.info(f"Drawing square has an error: {e}")
 
-if __name__ == "__main__":
+def meca500_basic_move():
     meca500_robot = Meca500()
     meca500_robot.initializeRobot()
-    
-    # Do movements here
-
     meca500_robot.draw_square()
-    # meca500_robot.pick_piece()
-    # meca500_robot.place_piece()
-
-    # Exit robot
-
     meca500_robot.exitRobot()
