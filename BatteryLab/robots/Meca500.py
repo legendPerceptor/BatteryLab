@@ -2,7 +2,7 @@ from mecademicpy.robot import Robot
 from mecademicpy import tools
 
 import mecademicpy.robot as mdr
-from Logger import Logger
+from ..helper.Logger import Logger
 from SuctionPump import SuctionPump
 
 from enum import Enum

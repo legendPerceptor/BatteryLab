@@ -6,7 +6,7 @@ import os
 import threading
 import json
 
-from Logger import Logger
+from ..helper.Logger import Logger
 from AssemblyRobot import Components, AssemblySteps
 
 from pathlib import Path

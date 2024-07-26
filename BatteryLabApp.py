@@ -1,1 +1,0 @@
-# TODO: This will be a Qt-based GUI app

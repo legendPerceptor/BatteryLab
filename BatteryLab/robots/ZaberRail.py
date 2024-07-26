@@ -2,12 +2,12 @@ from zaber_motion import Library, DeviceDbSourceType, Units, MotionLibException
 from zaber_motion.ascii import Connection
 from zaber_motion.exceptions.connection_failed_exception import ConnectionFailedException
 
-from Logger import Logger
-
 import serial
 import os
 from pathlib import Path
-from utils import get_proper_port_for_device, SupportedDevices
+
+from ..helper.Logger import Logger
+from ..helper.utils import get_proper_port_for_device, SupportedDevices
 
 class ZaberRail():
     def __init__(self, port):
@@ -100,7 +100,7 @@ def drive_rail(rail):
         except ValueError:
             print("Invalid input. Please enter a valid position value.")
 
-def main():
+def zaber_cli_app():
     selected_port = get_proper_port_for_device(SupportedDevices.ZaberLinearRail)
     zaber_rail = ZaberRail(port=selected_port)
     ok = zaber_rail.connect()
@@ -124,6 +124,3 @@ def main():
     finally:
         zaber_rail.disconnect()
         print("Zaber Rail disconnected safely.")
-
-if __name__ == "__main__":
-    main()

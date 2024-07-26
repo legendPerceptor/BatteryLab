@@ -7,7 +7,7 @@ import logging
 import serial
 from Meca500 import Meca500, RobotTool
 from ZaberRail import ZaberRail
-from Logger import Logger
+from ..helper.Logger import Logger
 
 import cv2
 import numpy as np
