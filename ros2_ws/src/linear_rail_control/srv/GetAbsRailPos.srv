@@ -1,0 +1,3 @@
+---
+int32 current_pos
+bool connected

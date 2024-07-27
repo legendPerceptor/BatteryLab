@@ -6,6 +6,7 @@ logs/
 3DPrint/
 .DS_Store
 ros2_ws/lab_venv
+lab_venv/
 BatteryLab.egg-info/
 ros2_ws/build/
 ros2_ws/install/

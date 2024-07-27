@@ -4,7 +4,7 @@ from BatteryLab.robots.AutoCorrection import AutoCorrection
 from BatteryLab.robots.Constants import AssemblyRobotConstants, Components, AssemblySteps, ComponentProperty
 
 from BatteryLab.robots.ZaberRail import ZaberRail
-# from linear_rail_control.linear_rail_client import LinearRailClient
+from linear_rail_control.linear_rail_control.linear_rail_client import LinearRailClient
 import numpy as np
 
 class AssemblyRobot():
@@ -14,7 +14,7 @@ class AssemblyRobot():
         self.rail_meca500 = Meca500(logger=logger, log_path="./rail_meca500.log", robot_address="192.168.0.101")
         self.status = dict(Progress=dict(Initiate=0, LastStep=None), Meca500Ready=False, ZaberRailReady=False)
         self.logger = Logger(device_name="Assembly Robot", log_path="logs", logger_filename="assembly_robot.log") if logger is None else logger
-        self.zaber_rail = ZaberRail()
+        self.zaber_rail = LinearRailClient()
         self.assemblyRobotConstants = AssemblyRobotConstants()
         self.auto_correction = AutoCorrection()
         self.initialize_and_home_robots()
