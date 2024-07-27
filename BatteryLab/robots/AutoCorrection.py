@@ -7,12 +7,10 @@ import threading
 import json
 
 from ..helper.Logger import Logger
-from AssemblyRobot import Components, AssemblySteps
+from Constants import Components, AssemblySteps
 
 from pathlib import Path
-from pydantic import BaseModel
 from Constants import AutoCorrectionConfig, StepCorrectionConfig
-
 
 class AutoCorrection():
 

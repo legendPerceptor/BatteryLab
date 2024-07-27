@@ -95,14 +95,14 @@ class Meca500():
             self.robot.GripperClose()
             self.robot.WaitGripperMoveCompletion()
         elif self.status["Tool"] == RobotTool.SUCTION:
-            self.suction_pump.suction_on()
+            self.suction_pump.pick()
     
     def smart_drop(self):
         if self.status["Tool"] == RobotTool.GRIPPER:
             self.robot.GripperOpen()
             self.robot.WaitGripperMoveCompletion()
         elif self.status["Tool"] == RobotTool.SUCTION:
-            self.suction_pump.suction_off()
+            self.suction_pump.drop()
 
     def move_after_drop(self):
         self.robot.MoveJoints(*self.RobotConstants.HOME_POST_J)

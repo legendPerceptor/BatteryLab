@@ -5,6 +5,7 @@ import argparse
 
 from BatteryLab.robots.ZaberRail import zaber_cli_app
 from BatteryLab.robots.SuctionPump import suction_cli_app
+from BatteryLab.robots.Meca500 import meca500_basic_move
 
 def main():
     help_str = 'Welcome to BatteryLab CLI program!'
@@ -19,7 +20,7 @@ def main():
         "--mode",
         type=str,
         default="suction",
-        help="Choose which app to use. Options: 1. suction, 2. zaber_rail"
+        help="Choose which app to use. Options: 1. suction, 2. zaber_rail, 3. meca500"
     )
 
     args = parser.parse_args()
@@ -28,6 +29,8 @@ def main():
         suction_cli_app()
     elif args.mode == 'zaber':
         zaber_cli_app()
+    elif args.mode == 'meca500':
+        meca500_basic_move()
     else:
         print("Your options are not valid! Program will exit!")
 
