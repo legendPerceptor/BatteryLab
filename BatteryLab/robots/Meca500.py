@@ -5,8 +5,8 @@ import mecademicpy.robot as mdr
 from ..helper.Logger import Logger
 from ..helper.utils import get_proper_port_for_device, SupportedDevices
 
-from SuctionPump import SuctionPump
-from Constants import Meca500RobotConstants, RobotTool
+from .SuctionPump import SuctionPump
+from .Constants import Meca500RobotConstants, RobotTool
 
 
 class Meca500():

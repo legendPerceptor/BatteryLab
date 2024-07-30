@@ -63,18 +63,19 @@ class StepCorrectionConfig(BaseModel):
     minR: int
     maxR: int
 
-class AutoCorrectionConfig(BaseModel):
-    CAM_PORT_BOTM:int = 1
-    CAM_PORT_TOP:int = 2
-    Anode_Drop=StepCorrectionConfig(name='Anode_Drop', diam=15, ksize=5, minDist=100, param1=100, param2=10, minR=80, maxR=85)
-    Anode_Grab=StepCorrectionConfig(name='Anode_Grab', diam=15, ksize=5, minDist=300, param1=120, param2=15, minR=115, maxR=135)
-    Cathode_Drop=StepCorrectionConfig(name='Cathode_Drop', diam=14, ksize=5, minDist=100, param1=100, param2=10, minR=75, maxR=80)
-    Cathode_Grab=StepCorrectionConfig(name='Cathode_Grab', diam=14, ksize=5, minDist=300, param1=120, param2=15, minR=115, maxR=125)
-    Separator_Drop=StepCorrectionConfig(name='Separator_Drop', diam=15.5, ksize=5, minDist=100, param1=120, param2=15, minR=85, maxR=93)
-    Separator_Grab=StepCorrectionConfig(name='Separator_Grab', diam=15.5, ksize=5, minDist=500, param1=120, param2=15, minR=135, maxR=145)
-    Anode_Spacer_Grab=StepCorrectionConfig(name='Anode_Spacer', diam=15.5, ksize=5, minDist=100, param1=120, param2=15, minR=135, maxR=140)
-    Cathode_Spacer_Grab=StepCorrectionConfig(name='Cathode_Spacer', diam=15.5, ksize=5, minDist=100, param1=120, param2=15, minR=135, maxR=140)
-    Cathode_Case_Grab=StepCorrectionConfig(name='Cathode_Case', diam=19.3, ksize=5, minDist=100, param1=120, param2=15, minR=187, maxR=195)
-    Reference=StepCorrectionConfig(name='Reference', diam=2, ksize=5, minDist=100, param1=120, param2=20, minR=8, maxR=15)
-    Suction_Cup=StepCorrectionConfig(name='Suction_Cup', diam=4, ksize=5, minDist=500, param1=120, param2=20, minR=50, maxR=60)
-    Customize=StepCorrectionConfig(name='Customize', diam=2, ksize=5, minDist=100, param1=100, param2=10, minR=110, maxR=115)
+class AutoCorrectionConfig():
+    def __init__(self):
+        self.CAM_PORT_BOTM:int = 1
+        self.CAM_PORT_TOP:int = 2
+        self.Anode_Drop=StepCorrectionConfig(name='Anode_Drop', diam=15, ksize=5, minDist=100, param1=100, param2=10, minR=80, maxR=85)
+        self.Anode_Grab=StepCorrectionConfig(name='Anode_Grab', diam=15, ksize=5, minDist=300, param1=120, param2=15, minR=115, maxR=135)
+        self.Cathode_Drop=StepCorrectionConfig(name='Cathode_Drop', diam=14, ksize=5, minDist=100, param1=100, param2=10, minR=75, maxR=80)
+        self.Cathode_Grab=StepCorrectionConfig(name='Cathode_Grab', diam=14, ksize=5, minDist=300, param1=120, param2=15, minR=115, maxR=125)
+        self.Separator_Drop=StepCorrectionConfig(name='Separator_Drop', diam=15.5, ksize=5, minDist=100, param1=120, param2=15, minR=85, maxR=93)
+        self.Separator_Grab=StepCorrectionConfig(name='Separator_Grab', diam=15.5, ksize=5, minDist=500, param1=120, param2=15, minR=135, maxR=145)
+        self.Anode_Spacer_Grab=StepCorrectionConfig(name='Anode_Spacer', diam=15.5, ksize=5, minDist=100, param1=120, param2=15, minR=135, maxR=140)
+        self.Cathode_Spacer_Grab=StepCorrectionConfig(name='Cathode_Spacer', diam=15.5, ksize=5, minDist=100, param1=120, param2=15, minR=135, maxR=140)
+        self.Cathode_Case_Grab=StepCorrectionConfig(name='Cathode_Case', diam=19.3, ksize=5, minDist=100, param1=120, param2=15, minR=187, maxR=195)
+        self.Reference=StepCorrectionConfig(name='Reference', diam=2, ksize=5, minDist=100, param1=120, param2=20, minR=8, maxR=15)
+        self.Suction_Cup=StepCorrectionConfig(name='Suction_Cup', diam=4, ksize=5, minDist=500, param1=120, param2=20, minR=50, maxR=60)
+        self.Customize=StepCorrectionConfig(name='Customize', diam=2, ksize=5, minDist=100, param1=100, param2=10, minR=110, maxR=115)
