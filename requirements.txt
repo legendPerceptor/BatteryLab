@@ -4,3 +4,4 @@ pyserial
 pydantic
 opencv-contrib-python
 pyudev
+setuptools
