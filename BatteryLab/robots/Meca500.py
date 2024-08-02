@@ -10,7 +10,7 @@ from .Constants import Meca500RobotConstants, RobotTool
 
 
 class Meca500():
-    def __init__(self, logger = None, log_path="logs", logger_filename="Meca500.log", robot_address="192.168.0.101", vacuum_port=""):
+    def __init__(self, logger = None, log_path="logs", logger_filename="Meca500.log", robot_address="192.168.0.101"):
         self.robot = Robot()
         self.robot_address = robot_address
         self.logger = Logger("Meca500", log_path=log_path, logger_filename=logger_filename) if logger is None else logger
@@ -29,7 +29,7 @@ class Meca500():
             self.exitRobot()
 
     def exitRobot(self):
-        self.robot.DeactivateRobot()
+        # self.robot.DeactivateRobot()
         self.robot.Disconnect()
         self.robot = None
         self.logger.info("The robot is deactivated!")
@@ -86,9 +86,11 @@ class Meca500():
     
     def move_home(self):
         self.robot.MoveJoints(*self.home)
+        self.robot.WaitIdle(30)
 
     def move_for_snapshot(self):
         self.robot.MovePose(*self.RobotConstants.SNAP_SHOT_GRAB_PO)
+        self.robot.WaitIdle(30)
 
     def smart_grab(self):
         if self.status["Tool"] == RobotTool.GRIPPER:
@@ -150,8 +152,13 @@ class Meca500():
         except Exception as e:
             self.logger.info(f"Drawing square has an error: {e}")
 
-def meca500_basic_move():
-    meca500_robot = Meca500()
+def meca500_example_app():
+    robot_address = "192.168.0.101"
+    user_provided_address = input(f"Please type in the IP address for the robot (the default is {robot_address}, press enter to use the default): ")
+    if user_provided_address != '':
+        robot_address = user_provided_address
+    meca500_robot = Meca500(robot_address=robot_address)
     meca500_robot.initializeRobot()
     meca500_robot.draw_square()
+    meca500_robot.move_home()
     meca500_robot.exitRobot()

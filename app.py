@@ -5,32 +5,28 @@ import argparse
 
 from BatteryLab.robots.ZaberRail import zaber_cli_app
 from BatteryLab.robots.SuctionPump import suction_cli_app
-from BatteryLab.robots.Meca500 import meca500_basic_move
+from BatteryLab.robots.Meca500 import meca500_example_app
+from BatteryLab.camera.camera_utility import send_image, receive_image
 
 def main():
-    help_str = 'Welcome to BatteryLab CLI program!'
+    help_str = """Choose which app to use in the Battery Lab CLI program.
+Options: 1. suction, 2. zaber_rail, 3. meca500
+4. camera_master, 5. camera_slave
+"""
     print(help_str)
-    parser = argparse.ArgumentParser(
-        description="[TODO] BatteryLab CLI program parameters explanations!",
-        formatter_class=argparse.RawDescriptionHelpFormatter
-    )
+    mode = input("Please select which app to use: ")
 
-    parser.add_argument(
-        "-m",
-        "--mode",
-        type=str,
-        default="suction",
-        help="Choose which app to use. Options: 1. suction, 2. zaber_rail, 3. meca500"
-    )
-
-    args = parser.parse_args()
-    print("args.mode: ", args.mode)
-    if args.mode == 'suction':
+    if mode == 'suction' or mode == '1':
         suction_cli_app()
-    elif args.mode == 'zaber':
+    elif mode == 'zaber' or mode == '2':
         zaber_cli_app()
-    elif args.mode == 'meca500':
-        meca500_basic_move()
+    elif mode == 'meca500' or mode == '3':
+        meca500_example_app()
+    elif mode == 'camera_master' or mode =='4':
+        receive_image(port=9999)
+    elif mode == 'camera_slave' or mode == '5':
+        ip_address = input("type in the master computer's ip address:")
+        send_image(ip=ip_address, port=9999)
     else:
         print("Your options are not valid! Program will exit!")
 

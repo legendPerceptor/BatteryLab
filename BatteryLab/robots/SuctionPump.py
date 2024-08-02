@@ -28,6 +28,13 @@ class SuctionPump():
     def check_connection(self):
         return self.serialcomm.isOpen()
     
+    def continues_pick(self):
+        try:
+            self.serialcomm.write(b'C')
+            self.status['Vacuumed'] = True
+        except serial.SerialException as e:
+            self.logger.error(f"Error in pick operation: {e}")
+    
     def pick(self):
         try:
             self.serialcomm.write(b'P')
@@ -66,15 +73,17 @@ def suction_cli_app():
     
     try:
         while True:
-            input_str = input("Press [Enter] to reset the pump, [P] to pick up an item, [D] to drop an item, [C] to check connection, [exit] to exit the program: ").strip().lower()
+            input_str = input("Press [Enter] to reset the pump, [C] to continuously suck, [P] to pick up an item, [D] to drop an item, [Q] to check connection, [exit] to exit the program: ").strip().lower()
             if input_str == '':
                 suctionPump.off()
             elif input_str == 'p':
                 suctionPump.pick()
             elif input_str == 'd':
                 suctionPump.drop()
-            elif input_str == 'c':
+            elif input_str == 'q':
                 print(f"The connection status: {suctionPump.check_connection()}")
+            elif input_str == 'c':
+                suctionPump.continues_pick()
             elif input_str == 'exit':
                 break
     except KeyboardInterrupt:
