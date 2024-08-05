@@ -11,7 +11,9 @@ class LinearRailClient(Node):
         while not self.move_linear_rail_cli.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Move Linear Rail Service not available, waiting...')
 
-        self.get_pos_cli = self.create_client(srv_type=GetAbsRailPos, srv_name='/zaber/get_rail_pos')
+        self.get_pos_cli = self.create_client(srv_type=GetAbsRailPos, srv_name='/zaber/get_rail_pose')
+        while not self.get_pos_cli.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('Get Pos Service not available, waiting...')
         self.move_req = MoveLinearRail.Request()
         self.get_pos_req = GetAbsRailPos.Request()
 
@@ -32,7 +34,7 @@ def main(args=None):
     
     while rclpy.ok():
         rclpy.spin_once(client)
-        if move_future.done() or get_pos_future.done():
+        if move_future.done() and get_pos_future.done():
             print("I am in")
             try:
                 response = move_future.result()
