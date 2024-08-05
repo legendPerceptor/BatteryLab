@@ -20,6 +20,7 @@ class LinearRailClient(Node):
         return self.move_linear_rail_cli.call_async(self.move_req)
     
     def send_get_pos_request(self) -> rclpy.task.Future:
+        self.get_pos_req.get = True
         return self.get_pos_cli.call_async(self.get_pos_req)
 
 def main(args=None):
