@@ -5,3 +5,7 @@ pydantic
 opencv-contrib-python
 pyudev
 setuptools
+colcon-common-extensions
+rosdep
+lark
+empy

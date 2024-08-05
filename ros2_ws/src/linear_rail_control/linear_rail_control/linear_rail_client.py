@@ -1,16 +1,17 @@
+#!/home/yuanjian/Research/BatteryLab/lab_venv/bin/python3
 import sys
 import rclpy
 from rclpy.node import Node
-from linear_rail_control.srv import MoveLinearRail, GetAbsRailPos
+from battery_lab_custom_msg.srv import MoveLinearRail, GetAbsRailPos
 
 class LinearRailClient(Node):
     def __init__(self):
         super().__init__('linear_rail_client')
-        self.move_linear_rail_cli = self.create_client(srv_type=MoveLinearRail, srv_name='zaber/move_linear_rail', qos_profile=10)
+        self.move_linear_rail_cli = self.create_client(srv_type=MoveLinearRail, srv_name='zaber/move_linear_rail')
         while not self.move_linear_rail_cli.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Move Linear Rail Service not available, waiting...')
 
-        self.get_pos_cli = self.create_client(srv_type=GetAbsRailPos, srv_name='zaber/get_rail_pos', qos_profile=10)
+        self.get_pos_cli = self.create_client(srv_type=GetAbsRailPos, srv_name='zaber/get_rail_pos')
         self.move_req = MoveLinearRail.Request()
         self.get_pos_req = GetAbsRailPos.Request()
 
@@ -30,7 +31,7 @@ def main(args=None):
     
     while rclpy.ok():
         rclpy.spin_once(client)
-        if client.future.done():
+        if move_future.done() and get_pos_future.done():
             try:
                 response = move_future.result()
                 pos_response = get_pos_future.result()

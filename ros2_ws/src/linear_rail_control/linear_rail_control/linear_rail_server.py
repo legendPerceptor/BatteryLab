@@ -1,6 +1,7 @@
+#!/home/yuanjian/Research/BatteryLab/lab_venv/bin/python3
 import rclpy
 from rclpy.node import Node
-from linear_rail_control.srv import MoveLinearRail, GetAbsRailPos
+from battery_lab_custom_msg.srv import MoveLinearRail, GetAbsRailPos
 from BatteryLab.robots.ZaberRail import ZaberRail, ZaberRailConnectionError
 from BatteryLab.helper.utils import get_proper_port_for_device, SupportedDevices
 
