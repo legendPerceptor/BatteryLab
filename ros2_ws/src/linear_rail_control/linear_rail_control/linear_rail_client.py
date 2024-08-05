@@ -7,11 +7,11 @@ from battery_lab_custom_msg.srv import MoveLinearRail, GetAbsRailPos
 class LinearRailClient(Node):
     def __init__(self):
         super().__init__('linear_rail_client')
-        self.move_linear_rail_cli = self.create_client(srv_type=MoveLinearRail, srv_name='zaber/move_linear_rail')
+        self.move_linear_rail_cli = self.create_client(srv_type=MoveLinearRail, srv_name='/zaber/move_linear_rail')
         while not self.move_linear_rail_cli.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Move Linear Rail Service not available, waiting...')
 
-        self.get_pos_cli = self.create_client(srv_type=GetAbsRailPos, srv_name='zaber/get_rail_pos')
+        self.get_pos_cli = self.create_client(srv_type=GetAbsRailPos, srv_name='/zaber/get_rail_pos')
         self.move_req = MoveLinearRail.Request()
         self.get_pos_req = GetAbsRailPos.Request()
 
@@ -20,7 +20,7 @@ class LinearRailClient(Node):
         return self.move_linear_rail_cli.call_async(self.move_req)
     
     def send_get_pos_request(self) -> rclpy.task.Future:
-        self.get_pos_req.get = True
+        self.get_pos_req.get = 10
         return self.get_pos_cli.call_async(self.get_pos_req)
 
 def main(args=None):
@@ -32,7 +32,8 @@ def main(args=None):
     
     while rclpy.ok():
         rclpy.spin_once(client)
-        if move_future.done() and get_pos_future.done():
+        if move_future.done() or get_pos_future.done():
+            print("I am in")
             try:
                 response = move_future.result()
                 pos_response = get_pos_future.result()

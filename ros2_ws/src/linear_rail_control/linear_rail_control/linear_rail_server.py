@@ -18,12 +18,12 @@ class LinearRailServer(Node):
             print("The server has successfully connected to the Zaber linear rail!")
             self.get_logger().info("The server has successfully connected to the Zaber linear rail!")
         
-        self.move_linear_rail_srv = self.create_service(MoveLinearRail, 'zaber/move_linear_rail', self.move_linear_rail_callback)
-        self.get_linear_rail_pos_srv = self.create_service(GetAbsRailPos, 'zaber/get_rail_pose', self.get_rail_pos_callback)
+        self.move_linear_rail_srv = self.create_service(MoveLinearRail, '/zaber/move_linear_rail', self.move_linear_rail_callback)
+        self.get_linear_rail_pos_srv = self.create_service(GetAbsRailPos, '/zaber/get_rail_pose', self.get_rail_pos_callback)
         self.get_logger().info('Linear Rail Service is ready')
 
     def get_rail_pos_callback(self, request, response):
-        self.get_logger().info(f'Received request to get current position')
+        self.get_logger().info(f'Received request to get current position, {request.get}')
         try:
             pos = self.zaber_rail.get_cur_position()
             response.current_pos = pos
