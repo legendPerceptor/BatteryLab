@@ -30,7 +30,7 @@ class LinearRailServer(Node):
             response.connected = True
         except ZaberRailConnectionError as e:
             print(f"Caught an error in LinearRailServer: {e}")
-            response.current_pos = -1
+            response.current_pos = -1.0
             response.connected = False
         return response
 
