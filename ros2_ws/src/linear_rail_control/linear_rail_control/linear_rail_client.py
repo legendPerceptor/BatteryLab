@@ -36,6 +36,7 @@ def drive_rail(zaber_rail_client):
             return zaber_rail_client.send_move_request(pos)
         except ValueError:
             print("Invalid input. Please enter a valid position value.")
+    return None
 
 def cli_app():
     zaber_rail_client = LinearRailClient()
@@ -58,6 +59,7 @@ def cli_app():
             else:
                 print("Invalid input. Please enter a valid option.")
             if future is not None:
+                print("future is ", future)
                 while rclpy.ok():
                     rclpy.spin_once(zaber_rail_client)
                     if future.done():
