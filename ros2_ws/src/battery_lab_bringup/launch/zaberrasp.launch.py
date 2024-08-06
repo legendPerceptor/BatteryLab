@@ -16,6 +16,6 @@ def generate_launch_description():
             executable='linear_rail_server',
             name='linear_rail_server',
             output='screen',
-            prefix=f'{python_interpreter} -m'
+            prefix=f'{python_interpreter}'
         ),
     ])
