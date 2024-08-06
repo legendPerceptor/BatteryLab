@@ -25,27 +25,58 @@ class LinearRailClient(Node):
         self.get_pos_req.get = 10
         return self.get_pos_cli.call_async(self.get_pos_req)
 
+
+def drive_rail(zaber_rail_client):
+    while True:
+        pos = input("Type in Abs position, Press [Enter] to quit: ")
+        if pos == '':
+            break
+        try:
+            pos = float(pos)
+            return zaber_rail_client.send_move_request(pos)
+        except ValueError:
+            print("Invalid input. Please enter a valid position value.")
+
+def cli_app():
+    zaber_rail_client = LinearRailClient()
+    try:
+        while True:
+            future = None
+            input_str = input("Press [Enter] to quit, [0] to home the rail, [M] to drive rail, [P] to get curent location: ").strip().lower()
+            if input_str == '':
+                break
+            elif input_str == '0':
+                future = zaber_rail_client.send_move_request(0)
+                break
+            elif input_str == 'm' or input_str == 'M':
+                future = drive_rail(zaber_rail_client)
+            elif input_str == 'p' or input_str == 'P':
+                future = zaber_rail_client.send_get_pos_request()
+            else:
+                print("Invalid input. Please enter a valid option.")
+            if future is not None:
+                while rclpy.ok():
+                    rclpy.spin_once(zaber_rail_client)
+                    if future.done():
+                        try:
+                            response = future.result()
+                        except Exception as e:
+                            zaber_rail_client.get_logger().info(f'Service call failed {e}')
+                        else:
+                            if "success" in response:
+                                zaber_rail_client.get_logger().info(f'Move call result: {response.success}')
+                            elif "current_pos" in response:
+                                zaber_rail_client.get_logger().info(f'The current position of Zaber rail: {response.current_pos}')
+                        future = None
+    except KeyboardInterrupt:
+        print("Program interrupted by user.")
+    finally:
+        zaber_rail_client.destroy_node()
+        print("Zaber Rail disconnected safely.")
+
 def main(args=None):
     rclpy.init(args=args)
-    client = LinearRailClient()
-    position = int(sys.argv[1]) if len(sys.argv) > 1 else 0
-    move_future = client.send_move_request(position)
-    get_pos_future = client.send_get_pos_request()
-    
-    while rclpy.ok():
-        rclpy.spin_once(client)
-        if move_future.done() and get_pos_future.done():
-            print("I am in")
-            try:
-                response = move_future.result()
-                pos_response = get_pos_future.result()
-            except Exception as e:
-                client.get_logger().info(f'Service call failed {e}')
-            else:
-                client.get_logger().info(f'Move Result: {response.success}, Pos Result: pos: {pos_response.current_pos}')
-            break
-
-    client.destroy_node()
+    cli_app()
     rclpy.shutdown()
 
 if __name__ == '__main__':

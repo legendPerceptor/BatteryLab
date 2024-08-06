@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'assembly_robot = assembly_robot.AssemblyRobot:main'
         ],
     },
 )
