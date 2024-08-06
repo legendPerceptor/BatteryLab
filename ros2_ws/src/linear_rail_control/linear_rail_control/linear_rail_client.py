@@ -73,6 +73,7 @@ def cli_app():
                             elif mode == 'pos':
                                 zaber_rail_client.get_logger().info(f'The current position of Zaber rail: {response.current_pos}')
                         future = None
+                        break
     except KeyboardInterrupt:
         print("Program interrupted by user.")
     finally:
