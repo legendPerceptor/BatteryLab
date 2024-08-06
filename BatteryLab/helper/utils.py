@@ -38,6 +38,8 @@ def get_proper_port_for_device(device_name: SupportedDevices):
                     selected_port = port.device
 
     while True:
+        if platform.system() == 'Linux' and selected_port != "":
+            break 
         port_index_str = input(f"[default is {selected_port}]: ").strip().lower()
         flag = True
         if port_index_str != '':

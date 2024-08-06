@@ -32,7 +32,6 @@ def generate_launch_description():
                 'ssh',
                 '-i', LaunchConfiguration('ssh_key'),
                 LaunchConfiguration('remote_machine'),
-                'trap \'kill $(jobs -p)\' EXIT && ',
                 'source /home/yuanjian/.bashrc && ros2 launch battery_lab_bringup zaberrasp.launch.py'
             ],
             shell=True,

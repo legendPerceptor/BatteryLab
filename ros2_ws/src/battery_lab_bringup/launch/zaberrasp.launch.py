@@ -9,7 +9,7 @@ def generate_launch_description():
         Node(
             package='linear_rail_control',
             executable='linear_rail_server',
-            name='zaber_rail_server',
+            name='linear_rail_server',
             output='screen'
         ),
     ])
