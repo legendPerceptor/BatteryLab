@@ -24,10 +24,6 @@ class AssemblyRobot():
         if not ok:
             print("The Meca500 cannot be connected")
             exit()
-        ok = self.zaber_rail.connect()
-        if not ok:
-            print("Zaber Rail cannot be connected!")
-            exit()
 
     def grab_component(self, rail_position, grab_position, is_grab=True):
         """Grab a component for battery or return it to the tray.
@@ -35,7 +31,7 @@ class AssemblyRobot():
         """
         # Move to the rail position
         self.logger.info(f"Assembly Robot Moving to {rail_position}.")
-        self.zaber_rail.move(rail_position)
+        self.zaber_rail.send_move_request(rail_position)
 
         # Prepare proper tooling for grabbing components
         if abs(grab_position[0]) >= 160:
@@ -56,7 +52,7 @@ class AssemblyRobot():
             drop_po[:2] = self.assemblyRobotConstants.POST_C_SK_PO[:2]
         
         # move the robot to the post location
-        self.zaber_rail.move(self.assemblyRobotConstants.POST_RAIL_LOCATION)
+        self.zaber_rail.send_move_request(self.assemblyRobotConstants.POST_RAIL_LOCATION)
 
         # component_set excludes the Anode_case and Spring
         # TODO: Why exclude the Anode_case?
@@ -70,11 +66,11 @@ class AssemblyRobot():
                 self.logger.info("Implementing auto correction...")
             elif grab_check:
                 self.logger.info(f"Trying to grab {component.name} for the second time...")
-                self.zaber_rail.move_home()
+                self.zaber_rail.send_move_request(0) # move home
                 self.rail_meca500.move_home()
                 component_property: ComponentProperty = getattr(self.assemblyRobotConstants, component.name)
                 self.grab_component(component_property.railPo[nr-1], component_property.grabPo[nr])
-                self.zaber_rail.move(self.assemblyRobotConstants.POST_RAIL_LOCATION)
+                self.zaber_rail.send_move_request(self.assemblyRobotConstants.POST_RAIL_LOCATION)
                 self.rail_meca500.move_for_snapshot()
                 correction, self.grabYes = self.auto_correction.run_autocorrection(state=AssemblySteps.Grab, component=component, nr=nr, show_image=show_image, save_img=save_img)
                 if self.grabYes:
@@ -84,11 +80,11 @@ class AssemblyRobot():
                     self.logger.info(f"No {component.name} detected! Manual check on tray {component.name}_No.[{nr}] required!")
                     # Move the meca500 robotic arm home
                     self.rail_meca500.move_home()
-                    self.zaber_rail.move_home()
+                    self.zaber_rail.send_move_request(0)
                     manual_ok = input(f"Make sure vacuum pump is on and {component.name} is on the tray NO.[{nr}], then type in 'ok' and Enter!")
                     if manual_ok == 'ok':
                         self.grab_component(component_property.railPo[nr-1], component_property.grabPo[nr])
-                        self.zaber_rail.move(self.assemblyRobotConstants.POST_RAIL_LOCATION)
+                        self.zaber_rail.send_move_request(self.assemblyRobotConstants.POST_RAIL_LOCATION)
                         self.rail_meca500.move_for_snapshot()
                         correction, self.grabYes = self.auto_correction.run_autocorrection(state=AssemblySteps.Grab, component=component, nr=nr, show_image=show_image, save_img=save_img)
                         drop_po = drop_po + correction
