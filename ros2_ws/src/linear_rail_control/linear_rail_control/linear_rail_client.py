@@ -42,16 +42,19 @@ def cli_app():
     try:
         while True:
             future = None
+            mode = ""
             input_str = input("Press [Enter] to quit, [0] to home the rail, [M] to drive rail, [P] to get curent location: ").strip().lower()
             if input_str == '':
                 break
             elif input_str == '0':
                 future = zaber_rail_client.send_move_request(0)
-                break
+                mode = "move"
             elif input_str == 'm' or input_str == 'M':
                 future = drive_rail(zaber_rail_client)
+                mode = "move"
             elif input_str == 'p' or input_str == 'P':
                 future = zaber_rail_client.send_get_pos_request()
+                mode = "pos"
             else:
                 print("Invalid input. Please enter a valid option.")
             if future is not None:
@@ -63,9 +66,9 @@ def cli_app():
                         except Exception as e:
                             zaber_rail_client.get_logger().info(f'Service call failed {e}')
                         else:
-                            if "success" in response:
+                            if mode == 'move':
                                 zaber_rail_client.get_logger().info(f'Move call result: {response.success}')
-                            elif "current_pos" in response:
+                            elif mode == 'pos':
                                 zaber_rail_client.get_logger().info(f'The current position of Zaber rail: {response.current_pos}')
                         future = None
     except KeyboardInterrupt:
