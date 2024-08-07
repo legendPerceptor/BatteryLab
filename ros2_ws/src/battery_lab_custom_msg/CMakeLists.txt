@@ -7,13 +7,14 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/GetAbsRailPos.srv"
   "srv/MoveLinearRail.srv"
+  "srv/CaptureImage.srv" DEPENDENCIES builtin_interfaces sensor_msgs
 )
 
 ament_package()
