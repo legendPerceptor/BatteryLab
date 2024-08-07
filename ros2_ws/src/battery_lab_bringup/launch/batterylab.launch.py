@@ -3,7 +3,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, ExecuteProcess, TimerAction, SetEnvironmentVariable
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
-from pathlib import Path
+from launch.substitutions import PythonExpression
 
 def generate_launch_description():
 
@@ -14,14 +14,17 @@ def generate_launch_description():
             default_value="/home/yuanjian/Research/BatteryLab/lab_venv/",
             description='The python virtual environment path'
         ),
-    venv_path = LaunchConfiguration("venv_path")
+    # venv_path = "/home/yuanjian/Research/BatteryLab/lab_venv/"
     # python_interpreter = str(Path(venv_path) / "bin" / "python")
-    activate_program = str(Path(venv_path) / "bin" / "activate")
-    activate_venv_cmd = f"source {activate_program} &&"
+    # activate_program = str(Path(venv_path) / "bin" / "activate")
+    # activate_venv_cmd = f"source {activate_program} &&"
+
+    combined_prefix = PythonExpression([
+        '"source ", "', venv_path_argument, '/bin/activate && ', '"'
+    ])
 
     return LaunchDescription([
         set_ros_domain_id,
-        venv_path_argument,
         DeclareLaunchArgument(
             'remote_machine',
             default_value='yuanjian@yuanjian-rasp5.local',
@@ -61,7 +64,7 @@ def generate_launch_description():
                     executable='linear_rail_client',
                     name='linear_rail_client',
                     output='screen',
-                    prefix=activate_venv_cmd
+                    prefix=combined_prefix
                 ),
             ],
         )
