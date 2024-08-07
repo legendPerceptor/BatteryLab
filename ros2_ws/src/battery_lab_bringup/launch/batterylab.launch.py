@@ -21,6 +21,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         set_ros_domain_id,
+        venv_path_argument,
         DeclareLaunchArgument(
             'remote_machine',
             default_value='yuanjian@yuanjian-rasp5.local',
