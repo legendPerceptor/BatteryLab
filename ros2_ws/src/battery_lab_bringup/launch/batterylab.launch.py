@@ -18,7 +18,7 @@ def generate_launch_description():
     venv_path = "/home/yuanjian/Research/BatteryLab/lab_venv/"
     # python_interpreter = str(Path(venv_path) / "bin" / "python")
     activate_program = str(Path(venv_path) / "bin" / "activate")
-    activate_venv_cmd = f"source {activate_program} &&"
+    activate_venv_cmd = f"bash -c 'source {activate_program} &&'"
 
     # combined_prefix = PythonExpression([
     #     '"source ", "', venv_path_argument, '/bin/activate && ', '"'
