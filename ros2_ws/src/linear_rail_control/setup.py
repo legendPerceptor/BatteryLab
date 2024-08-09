@@ -21,7 +21,8 @@ setup(
     entry_points={
         'console_scripts': [
             "linear_rail_server = linear_rail_control.linear_rail_server:main",
-            "linear_rail_client = linear_rail_control.linear_rail_client:main"
+            "linear_rail_client = linear_rail_control.linear_rail_client:main",
+            "test_rail_client = linear_rail_control.linear_rail_client:test_rail"
         ],
     },
 )

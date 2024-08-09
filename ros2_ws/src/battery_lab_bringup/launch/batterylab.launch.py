@@ -48,8 +48,8 @@ def generate_launch_description():
             actions=[
                 Node(
                     package='linear_rail_control',
-                    executable='linear_rail_client',
-                    name='linear_rail_client',
+                    executable='test_rail_client',
+                    name='test_rail_client',
                     output='screen'
                 ),
             ],

@@ -18,7 +18,7 @@ class LinearRailClient(Node):
         self.get_pos_req = GetAbsRailPos.Request()
 
     def send_move_request(self, position) -> rclpy.task.Future:
-        self.move_req.target_position = position
+        self.move_req.target_position = float(position)
         return self.move_linear_rail_cli.call_async(self.move_req)
     
     def send_get_pos_request(self) -> rclpy.task.Future:
@@ -83,6 +83,28 @@ def cli_app():
 def main(args=None):
     rclpy.init(args=args)
     cli_app()
+    rclpy.shutdown()
+
+def handle_move_future_result(future, zaber_rail_client):
+    while rclpy.ok():
+        rclpy.spin_once(zaber_rail_client)
+        if future.done():
+            try:
+                response = future.result()
+            except Exception as e:
+                zaber_rail_client.get_logger().info(f'Service call failed {e}')
+            else:
+                zaber_rail_client.get_logger().info(f'Move call result: {response.success}')
+            future = None
+            break
+
+def test_rail(args=None):
+    rclpy.init(args=args)
+    zaber_rail_client = LinearRailClient()
+    future = zaber_rail_client.send_move_request(100)
+    handle_move_future_result(future, zaber_rail_client)
+    future = zaber_rail_client.send_move_request(0)
+    handle_move_future_result(future, zaber_rail_client)
     rclpy.shutdown()
 
 if __name__ == '__main__':
