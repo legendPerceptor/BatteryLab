@@ -10,20 +10,6 @@ def generate_launch_description():
 
     set_ros_domain_id = SetEnvironmentVariable('ROS_DOMAIN_ID', '42')
 
-    # venv_path_argument = DeclareLaunchArgument(
-    #         "venv_path",
-    #         default_value="/home/yuanjian/Research/BatteryLab/lab_venv/",
-    #         description='The python virtual environment path'
-    #     ),
-    venv_path = "/home/yuanjian/Research/BatteryLab/lab_venv/"
-    # python_interpreter = str(Path(venv_path) / "bin" / "python")
-    activate_program = str(Path(venv_path) / "bin" / "activate")
-    activate_venv_cmd = f"bash -c 'source {activate_program} &&'"
-
-    # combined_prefix = PythonExpression([
-    #     '"source ", "', venv_path_argument, '/bin/activate && ', '"'
-    # ])
-
     return LaunchDescription([
         set_ros_domain_id,
         DeclareLaunchArgument(
@@ -51,7 +37,7 @@ def generate_launch_description():
                 'ssh',
                 '-i', LaunchConfiguration('ssh_key'),
                 LaunchConfiguration('remote_machine'),
-                '"source ~/.bashrc && ros2 launch battery_lab_bringup zaberrasp.launch.py"'
+                'bash -c "source ~/.bashrc && ros2 launch battery_lab_bringup zaberrasp.launch.py"'
             ],
             shell=True,
             output='screen'
@@ -64,8 +50,7 @@ def generate_launch_description():
                     package='linear_rail_control',
                     executable='linear_rail_client',
                     name='linear_rail_client',
-                    output='screen',
-                    prefix=activate_venv_cmd
+                    output='screen'
                 ),
             ],
         )
