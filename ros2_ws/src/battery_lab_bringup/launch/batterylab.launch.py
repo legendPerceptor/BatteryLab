@@ -37,7 +37,7 @@ def generate_launch_description():
                 'ssh',
                 '-i', LaunchConfiguration('ssh_key'),
                 LaunchConfiguration('remote_machine'),
-                'bash -c "source ~/.bashrc && ros2 launch battery_lab_bringup zaberrasp.launch.py"'
+                'bash -c "source ~/.ros_env_setup.sh && ros2 launch battery_lab_bringup zaberrasp.launch.py"'
             ],
             shell=True,
             output='screen'
