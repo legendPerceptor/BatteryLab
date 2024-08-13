@@ -7,6 +7,10 @@ from BatteryLab.robots.ZaberRail import ZaberRail
 from linear_rail_control.linear_rail_control.linear_rail_client import LinearRailClient
 import numpy as np
 
+import yaml
+from pathlib import Path
+from typing import List
+
 class AssemblyRobot():
 
     def __init__(self, logger = None):
@@ -34,10 +38,11 @@ class AssemblyRobot():
         self.zaber_rail.send_move_request(rail_position)
 
         # Prepare proper tooling for grabbing components
-        if abs(grab_position[0]) >= 160:
-            self.rail_meca500.change_tool(RobotTool.GRIPPER)
-        else:
-            self.rail_meca500.change_tool(RobotTool.SUCTION)
+        # if abs(grab_position[0]) >= 160:
+        #     self.rail_meca500.change_tool(RobotTool.GRIPPER)
+        # else:
+        #     self.rail_meca500.change_tool(RobotTool.SUCTION)
+        self.rail_meca500.change_tool(RobotTool.SUCTION)
 
         # Move home based on the tooling
         self.rail_meca500.move_home()
@@ -130,22 +135,77 @@ class AssemblyRobot():
 
         self.status["Progress"]["LastStep"] = AssemblySteps.Drop
         return True
+    
+def get_8_8_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left_coordinates, top_right_coordinates):
+    avg_height = np.average([bottom_left_coordinates[2], bottom_right_coordinates[2], top_left_coordinates[2], top_right_coordinates[2]])
+    pos_dict: dict[int, List[float]] = {}
+    delta_y = np.average([bottom_right_coordinates[1] - bottom_left_coordinates[1], top_right_coordinates[1] - top_left_coordinates[1]]) / 8
+    delta_x = np.average([bottom_right_coordinates[0] - top_right_coordinates[0], bottom_left_coordinates[0] - top_left_coordinates[0]]) / 8
+    for i in range(64):
+        x = i / 8
+        y = i % 8
+        pos_dict[i] = [top_left_coordinates[0] + x * delta_x, top_left_coordinates[1] + y * delta_y, avg_height] + bottom_left_coordinates[3:]
+    return pos_dict
+
+def create_robot_constants_from_manual_positions(manual_positions) -> AssemblyRobotConstants:
+    """Obtain the assembly robot constants"""
+    constants = AssemblyRobotConstants()
+
+    cartesian_coord_prop = "cartesians"
+    rail_pos_prop = "rail_pos"
+    bottom_left_prop = "bottom_left"
+    bottom_right_prop = "bottom_right"
+    top_left_prop = "top_left"
+    top_right_prop = "top_right"
+
+    assemble_post = manual_positions["AssemblePost"]
+    constants.POST_C_SK_PO = assemble_post[cartesian_coord_prop]
+    constants.POST_RAIL_LOCATION = assemble_post[rail_pos_prop]
+
+    separator = manual_positions["Separator"]
+    constants.Separator = ComponentProperty()
+    constants.Separator.railPo = separator[rail_pos_prop]
+    constants.Separator.dropPo = assemble_post[cartesian_coord_prop]
+    bottom_left_coordinates = separator[bottom_left_prop][cartesian_coord_prop]
+    bottom_right_coordinates = separator[bottom_right_prop][cartesian_coord_prop]
+    top_left_coordinates = separator[top_left_prop][cartesian_coord_prop]
+    top_right_coordinates = separator[top_right_prop][cartesian_coord_prop]
+    constants.Separator.grabPo = get_8_8_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left_coordinates, top_right_coordinates)
+
+    return constants
+
 
 def main():
     robot = AssemblyRobot()
-    steps = [{
-        "rail_position": 10,
-        "grab_position": [95.649, -91.317, 20.045, 180.0, 0.0, -90.0]
-    }, {
-        "rail_position": 20,
-        "grab_position": [96.049, -114.317, 20.045, 180.0, 0.0, -90.0]
-    }, {
-        "rail_position": 30,
-        "grab_position": [170.0, -90.0, 20.0, 180.0, 0.0, -90.0]
-    }]
-    for step in steps:
-        robot.grab_component(step["rail_position"], step["grab_position"], is_grab=True)
-        robot.grab_component(step["rail_position"], step["grab_position"], is_grab=False)
+    # steps = [{
+    #     "rail_position": 10,
+    #     "grab_position": [95.649, -91.317, 20.045, 180.0, 0.0, -90.0]
+    # }, {
+    #     "rail_position": 20,
+    #     "grab_position": [96.049, -114.317, 20.045, 180.0, 0.0, -90.0]
+    # }, {
+    #     "rail_position": 30,
+    #     "grab_position": [170.0, -90.0, 20.0, 180.0, 0.0, -90.0]
+    # }]
+    
+    # for step in steps:
+    #     robot.grab_component(step["rail_position"], step["grab_position"], is_grab=True)
+    #     robot.grab_component(step["rail_position"], step["grab_position"], is_grab=False)
+    
+    position_file = Path(__file__).parent / ".." / "resource" / "well_positions.yaml"
+
+    with open(position_file, "r") as f:
+        try:
+            constant_positions = yaml.safe_load(f)
+        except yaml.YAMLError as e:
+            print("Cannot load the YAML file with error: ", e)
+    
+    assembly_robot_constants = create_robot_constants_from_manual_positions(constant_positions)
+    grabpos = assembly_robot_constants.Separator.grabPo
+    railpos = assembly_robot_constants.Separator.railPo
+    for i in range(64):
+        robot.grab_component(railpos, grabpos[i], is_grab=True)
+        robot.grab_component(railpos, grabpos[i], is_grab=False)
 
 if __name__ == '__main__':
     main()

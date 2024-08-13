@@ -111,7 +111,7 @@ class Meca500():
         self.robot.MoveJoints(*self.RobotConstants.HOME_SK_J)
 
     def pick_place(self, grab_pos, is_grab = True):
-        self.robot.MovePose(grab_pos[0], grab_pos[1], 40, grab_pos[3], grab_pos[4], grab_pos[5])
+        self.robot.MovePose(grab_pos[0], grab_pos[1], grab_pos[2] + 20, grab_pos[3], grab_pos[4], grab_pos[5])
         # Linearly moving down to grab the component and go back
         self.robot.Delay(0.5)
         self.robot.SetCartLinVel(self.SLOW_DOWN)
@@ -122,18 +122,13 @@ class Meca500():
         else:
             self.smart_drop()
         self.robot.Delay(0.2)
-        self.robot.MoveLin(grab_pos[0], grab_pos[1], 40, grab_pos[3], grab_pos[4], grab_pos[5])
+        self.robot.MoveLin(grab_pos[0], grab_pos[1], grab_pos[2], grab_pos[3], grab_pos[4], grab_pos[5])
         self.robot.Delay(0.5)
         # Move the component back to home
         self.robot.SetCartLinVel(self.LIN_SPEED)
         self.move_home()
         self.robot.WaitIdle()
-        # Connect the suction pump
-        ok = self.suction_pump.connect_pump()
-        if ok:
-            self.logger.info("Suction pump is sucessfully connected!")
-        else:
-            self.logger.error("Cannot connect to the suction pump")
+        
     def draw_square(self):
         """For development purpose only, don't use in production"""
         try:
