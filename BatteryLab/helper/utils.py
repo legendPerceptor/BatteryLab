@@ -110,7 +110,7 @@ Cathode:
     """
     constants = AssemblyRobotConstants()
 
-    cartesian_coord_prop = "cartesians"
+    cartesian_coord_prop = "cartesian"
     rail_pos_prop = "rail_pos"
     bottom_left_prop = "bottom_left"
     bottom_right_prop = "bottom_right"
@@ -121,14 +121,18 @@ Cathode:
     constants.POST_C_SK_PO = assemble_post[cartesian_coord_prop]
     constants.POST_RAIL_LOCATION = assemble_post[rail_pos_prop]
 
-    separator = manual_positions["Separator"]
-    constants.Separator = ComponentProperty()
-    constants.Separator.railPo = separator[rail_pos_prop]
-    constants.Separator.dropPo = assemble_post[cartesian_coord_prop]
-    bottom_left_coordinates = separator[bottom_left_prop][cartesian_coord_prop]
-    bottom_right_coordinates = separator[bottom_right_prop][cartesian_coord_prop]
-    top_left_coordinates = separator[top_left_prop][cartesian_coord_prop]
-    top_right_coordinates = separator[top_right_prop][cartesian_coord_prop]
-    constants.Separator.grabPo = get_8_8_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left_coordinates, top_right_coordinates)
+    components = ["CathodeCase", "Cathode", "Separator", "Anode", "Washer", "Spacer", "AnodeCase"]
+
+    component_name = components[2]
+    component = manual_positions[component_name]
+    component_property = ComponentProperty()
+    component_property.railPo = component[rail_pos_prop]
+    component_property.dropPo = assemble_post[cartesian_coord_prop]
+    bottom_left_coordinates = component[bottom_left_prop][cartesian_coord_prop]
+    bottom_right_coordinates = component[bottom_right_prop][cartesian_coord_prop]
+    top_left_coordinates = component[top_left_prop][cartesian_coord_prop]
+    top_right_coordinates = component[top_right_prop][cartesian_coord_prop]
+    component_property.grabPo = get_8_8_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left_coordinates, top_right_coordinates)
+    setattr(constants, component_name, component_property)
 
     return constants

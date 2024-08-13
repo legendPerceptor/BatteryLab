@@ -156,6 +156,7 @@ def main():
     grabpos = assembly_robot_constants.Separator.grabPo
     railpos = assembly_robot_constants.Separator.railPo
     for i in range(64):
+        print(f"reaching the position of well {i}: {grabpos[i]}")
         robot.grab_component(railpos, grabpos[i], is_grab=True)
         robot.grab_component(railpos, grabpos[i], is_grab=False)
     rclpy.spin(robot)

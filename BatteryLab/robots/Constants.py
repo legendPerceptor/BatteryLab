@@ -36,22 +36,23 @@ class AssemblySteps(Enum):
     Retrieve=4
     Store=5
 
-class ComponentProperty(BaseModel):
-    railPo: List[float]
-    dropPo: List[float]
-    grabPo: dict[int, List[float]]
+class ComponentProperty():
+    def __init__(self):
+        self.railPo: List[float] = None
+        self.dropPo: List[float] = None
+        self.grabPo: dict[int, List[float]] = None
 
-class AssemblyRobotConstants(BaseModel):
-    POST_C_SK_PO: List[float] = [91.516, 198.318, 57.244, 180.0, 0.0, 90.0]
-    POST_RAIL_LOCATION: int = 100
-    Anode_Case: ComponentProperty
-    Anode_Spacer: ComponentProperty
-    Anode: ComponentProperty
-    Separator: ComponentProperty
-    Cathode: ComponentProperty
-    Cathode_Spacer: ComponentProperty
-    Washer: ComponentProperty
-    Cathode_Case: ComponentProperty
+class AssemblyRobotConstants():
+    def __init__(self):
+        self.POST_C_SK_PO: List[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.POST_RAIL_LOCATION: int = 100
+        self.AnodeCase: ComponentProperty = None
+        self.Anode: ComponentProperty = None
+        self.Separator: ComponentProperty = None
+        self.Cathode: ComponentProperty = None
+        self.Spacer: ComponentProperty = None
+        self.Washer: ComponentProperty = None
+        self.CathodeCase: ComponentProperty = None
 
 class StepCorrectionConfig(BaseModel):
     name: str
