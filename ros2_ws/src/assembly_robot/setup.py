@@ -1,4 +1,5 @@
 from setuptools import find_packages, setup
+from glob import glob
 
 package_name = 'assembly_robot'
 
@@ -10,6 +11,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        ('share/' + package_name + '/yaml', ['yaml/well_positions.yaml']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -20,7 +22,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'assembly_robot = assembly_robot.AssemblyRobot:main'
+            'assembly_robot = assembly_robot.AssemblyRobot:main',
+            'test_yaml_path = assembly_robot.test_yaml_path:main'
         ],
     },
 )

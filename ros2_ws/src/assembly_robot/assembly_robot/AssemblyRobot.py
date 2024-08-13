@@ -3,7 +3,7 @@ from BatteryLab.robots.Meca500 import Meca500, RobotTool
 from BatteryLab.helper.Logger import Logger
 from BatteryLab.robots.AutoCorrection import AutoCorrection
 from BatteryLab.robots.Constants import AssemblyRobotConstants, Components, AssemblySteps, ComponentProperty
-
+from BatteryLab.helper.utils import create_robot_constants_from_manual_positions
 from BatteryLab.robots.ZaberRail import ZaberRail
 from linear_rail_control.linear_rail_client import LinearRailClient
 import numpy as np
@@ -13,6 +13,8 @@ from pathlib import Path
 from typing import List
 from rclpy.node import Node
 import rclpy
+
+from ament_index_python.packages import get_package_share_path
 
 class AssemblyRobot(Node):
 
@@ -139,50 +141,11 @@ class AssemblyRobot(Node):
 
         self.status["Progress"]["LastStep"] = AssemblySteps.Drop
         return True
-    
-def get_8_8_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left_coordinates, top_right_coordinates):
-    avg_height = np.average([bottom_left_coordinates[2], bottom_right_coordinates[2], top_left_coordinates[2], top_right_coordinates[2]])
-    pos_dict: dict[int, List[float]] = {}
-    delta_y = np.average([bottom_right_coordinates[1] - bottom_left_coordinates[1], top_right_coordinates[1] - top_left_coordinates[1]]) / 8
-    delta_x = np.average([bottom_right_coordinates[0] - top_right_coordinates[0], bottom_left_coordinates[0] - top_left_coordinates[0]]) / 8
-    for i in range(64):
-        x = i / 8
-        y = i % 8
-        pos_dict[i] = [top_left_coordinates[0] + x * delta_x, top_left_coordinates[1] + y * delta_y, avg_height] + bottom_left_coordinates[3:]
-    return pos_dict
-
-def create_robot_constants_from_manual_positions(manual_positions) -> AssemblyRobotConstants:
-    """Obtain the assembly robot constants"""
-    constants = AssemblyRobotConstants()
-
-    cartesian_coord_prop = "cartesians"
-    rail_pos_prop = "rail_pos"
-    bottom_left_prop = "bottom_left"
-    bottom_right_prop = "bottom_right"
-    top_left_prop = "top_left"
-    top_right_prop = "top_right"
-
-    assemble_post = manual_positions["AssemblePost"]
-    constants.POST_C_SK_PO = assemble_post[cartesian_coord_prop]
-    constants.POST_RAIL_LOCATION = assemble_post[rail_pos_prop]
-
-    separator = manual_positions["Separator"]
-    constants.Separator = ComponentProperty()
-    constants.Separator.railPo = separator[rail_pos_prop]
-    constants.Separator.dropPo = assemble_post[cartesian_coord_prop]
-    bottom_left_coordinates = separator[bottom_left_prop][cartesian_coord_prop]
-    bottom_right_coordinates = separator[bottom_right_prop][cartesian_coord_prop]
-    top_left_coordinates = separator[top_left_prop][cartesian_coord_prop]
-    top_right_coordinates = separator[top_right_prop][cartesian_coord_prop]
-    constants.Separator.grabPo = get_8_8_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left_coordinates, top_right_coordinates)
-
-    return constants
-
 
 def main():
     rclpy.init()
     robot = AssemblyRobot()
-    position_file = Path(__file__).parent / ".." / "resource" / "well_positions.yaml"
+    position_file = Path(get_package_share_path("assembly_robot")) / "yaml" / "well_positions.yaml"
     with open(position_file, "r") as f:
         try:
             constant_positions = yaml.safe_load(f)
