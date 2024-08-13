@@ -35,9 +35,9 @@ def generate_launch_description():
         ExecuteProcess(
             cmd=[
                 'ssh',
-                '-i', LaunchConfiguration('ssh_key'),
+                '-i', LaunchConfiguration('ssh_key'), '-t',
                 LaunchConfiguration('remote_machine'),
-                "'bash -c \"source ~/.ros_env_setup.sh && ros2 launch battery_lab_bringup zaberrasp.launch.py\"'"
+                "'bash -c \"source ~/.ros_env_setup.sh && trap '\''kill 0'\'' SIGINT; ros2 launch battery_lab_bringup zaberrasp.launch.py\"'"
             ],
             shell=True,
             output='screen'

@@ -1,23 +1,27 @@
+#!/home/yuanjian/Research/BatteryLab/lab_venv/bin/python3
 from BatteryLab.robots.Meca500 import Meca500, RobotTool
 from BatteryLab.helper.Logger import Logger
 from BatteryLab.robots.AutoCorrection import AutoCorrection
 from BatteryLab.robots.Constants import AssemblyRobotConstants, Components, AssemblySteps, ComponentProperty
 
 from BatteryLab.robots.ZaberRail import ZaberRail
-from linear_rail_control.linear_rail_control.linear_rail_client import LinearRailClient
+from linear_rail_control.linear_rail_client import LinearRailClient
 import numpy as np
 
 import yaml
 from pathlib import Path
 from typing import List
+from rclpy.node import Node
+import rclpy
 
-class AssemblyRobot():
+class AssemblyRobot(Node):
 
     def __init__(self, logger = None):
+        super().__init__('assembly_robot')
         self.dir_name = "experiment_results"
         self.rail_meca500 = Meca500(logger=logger, log_path="./rail_meca500.log", robot_address="192.168.0.101")
         self.status = dict(Progress=dict(Initiate=0, LastStep=None), Meca500Ready=False, ZaberRailReady=False)
-        self.logger = Logger(device_name="Assembly Robot", log_path="logs", logger_filename="assembly_robot.log") if logger is None else logger
+        self.logger = Logger(logger_name="Assembly Robot", log_path="logs", logger_filename="assembly_robot.log") if logger is None else logger
         self.zaber_rail = LinearRailClient()
         self.assemblyRobotConstants = AssemblyRobotConstants()
         self.auto_correction = AutoCorrection()
@@ -176,24 +180,9 @@ def create_robot_constants_from_manual_positions(manual_positions) -> AssemblyRo
 
 
 def main():
+    rclpy.init()
     robot = AssemblyRobot()
-    # steps = [{
-    #     "rail_position": 10,
-    #     "grab_position": [95.649, -91.317, 20.045, 180.0, 0.0, -90.0]
-    # }, {
-    #     "rail_position": 20,
-    #     "grab_position": [96.049, -114.317, 20.045, 180.0, 0.0, -90.0]
-    # }, {
-    #     "rail_position": 30,
-    #     "grab_position": [170.0, -90.0, 20.0, 180.0, 0.0, -90.0]
-    # }]
-    
-    # for step in steps:
-    #     robot.grab_component(step["rail_position"], step["grab_position"], is_grab=True)
-    #     robot.grab_component(step["rail_position"], step["grab_position"], is_grab=False)
-    
     position_file = Path(__file__).parent / ".." / "resource" / "well_positions.yaml"
-
     with open(position_file, "r") as f:
         try:
             constant_positions = yaml.safe_load(f)
@@ -206,6 +195,9 @@ def main():
     for i in range(64):
         robot.grab_component(railpos, grabpos[i], is_grab=True)
         robot.grab_component(railpos, grabpos[i], is_grab=False)
+    rclpy.spin(robot)
+    robot.destroy_node()
+    rclpy.shutdown()
 
 if __name__ == '__main__':
     main()

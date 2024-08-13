@@ -7,10 +7,9 @@ import threading
 import json
 
 from ..helper.Logger import Logger
-from Constants import Components, AssemblySteps
+from .Constants import Components, AssemblySteps, AutoCorrectionConfig, StepCorrectionConfig
 
 from pathlib import Path
-from Constants import AutoCorrectionConfig, StepCorrectionConfig
 
 class AutoCorrection():
 
