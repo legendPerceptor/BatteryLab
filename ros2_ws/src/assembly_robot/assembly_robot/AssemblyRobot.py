@@ -158,7 +158,7 @@ def main():
     assembly_robot_constants = create_robot_constants_from_manual_positions(constant_positions)
     grabpos = assembly_robot_constants.Separator.grabPo
     railpos = assembly_robot_constants.Separator.railPo
-    for i in [63]:
+    for i in [56, 63]:
         print(f"reaching the position of well {i}: {grabpos[i]}")
         robot.grab_component(railpos, grabpos[i], is_grab=True)
         robot.grab_component(railpos, grabpos[i], is_grab=False)

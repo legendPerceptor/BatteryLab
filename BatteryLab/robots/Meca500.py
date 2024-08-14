@@ -17,7 +17,7 @@ class Meca500():
         # Status
         self.status = dict(Tool=None, Progress=dict(Initiate=0, LastStep=None), Initiated=False, Vacuumed=False, Grabbed=True, Aborted=False)
         self.suction_pump = SuctionPump(self.logger, self.status, vacuum_port=get_proper_port_for_device(SupportedDevices.SuctionPump))
-        self.home = [0, 0, 0, 0, 0, 0]
+        self.home = [0, 0, 0, 0, 45, 0]
         # Constants
         self.LIN_SPEED = 50
         self.SLOW_DOWN = 30
@@ -96,18 +96,20 @@ class Meca500():
         self.robot.WaitIdle(30)
 
     def smart_grab(self):
-        if self.status["Tool"] == RobotTool.GRIPPER:
-            self.robot.GripperClose()
-            self.robot.WaitGripperMoveCompletion()
-        elif self.status["Tool"] == RobotTool.SUCTION:
-            self.suction_pump.pick()
+        # if self.status["Tool"] == RobotTool.GRIPPER:
+        #     self.robot.GripperClose()
+        #     self.robot.WaitGripperMoveCompletion()
+        # elif self.status["Tool"] == RobotTool.SUCTION:
+        #     self.suction_pump.pick()
+        self.suction_pump.continues_pick()
     
     def smart_drop(self):
-        if self.status["Tool"] == RobotTool.GRIPPER:
-            self.robot.GripperOpen()
-            self.robot.WaitGripperMoveCompletion()
-        elif self.status["Tool"] == RobotTool.SUCTION:
-            self.suction_pump.drop()
+        # if self.status["Tool"] == RobotTool.GRIPPER:
+        #     self.robot.GripperOpen()
+        #     self.robot.WaitGripperMoveCompletion()
+        # elif self.status["Tool"] == RobotTool.SUCTION:
+        #     self.suction_pump.drop()
+        self.suction_pump.drop()
 
     def move_after_drop(self):
         self.robot.MoveJoints(*self.RobotConstants.HOME_POST_J)
@@ -120,7 +122,7 @@ class Meca500():
         self.robot.Delay(0.5)
         self.robot.SetCartLinVel(self.SLOW_DOWN)
         self.robot.MoveLin(*grab_pos)
-        self.robot.Delay(0.5)
+        self.robot.WaitIdle()
         if is_grab:
             self.smart_grab()
         else:
