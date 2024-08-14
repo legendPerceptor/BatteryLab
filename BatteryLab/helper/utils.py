@@ -65,18 +65,22 @@ def draw_calculated_points(pos_dict):
     y_coords = []
     manual_x_coords = []
     manual_y_coords = []
+    offset = 0.04
+    plt.figure(figsize=(8, 6))
     for i in range(64):
         x = int(i // 8)
         y = int(i % 8)
         if (x == 0 and y == 0) or (x == 7 and y == 0) or (x == 0 and y == 7) or (x == 7 and y == 7):
+            # Add index labels near each point
+            plt.text(pos_dict[i][0] + offset, pos_dict[i][1] + offset, str(i), fontsize=8, color='red')
             manual_x_coords.append(pos_dict[i][0])
             manual_y_coords.append(pos_dict[i][1])
         else:
+            plt.text(pos_dict[i][0] + offset, pos_dict[i][1] + offset, str(i), fontsize=8, color='blue')
             x_coords.append(pos_dict[i][0])
             y_coords.append(pos_dict[i][1])
-    plt.figure(figsize=(8, 6))
-    plt.scatter(x_coords, y_coords, color='blue')  # Plot the points
-    plt.scatter(manual_x_coords, manual_y_coords, color='red', s=5)
+    plt.scatter(x_coords, y_coords, color='blue', s=14)  # Plot the points
+    plt.scatter(manual_x_coords, manual_y_coords, color='red', s=14)
     for i in range(4):
         if i == 0 or i == 2:
             points_x = [manual_x_coords[i], manual_x_coords[(i+1) % 4]]
@@ -86,14 +90,6 @@ def draw_calculated_points(pos_dict):
             points_x = [manual_x_coords[i], manual_x_coords[(i+2) % 4]]
             points_y = [manual_y_coords[i], manual_y_coords[(i+2) % 4]]
             plt.plot(points_x, points_y, color='r', linewidth=1)
-    
-    # Add index labels near each point
-    offset = 0.04
-    for i, (x, y) in enumerate(zip(x_coords, y_coords)):
-        plt.text(x + offset, y + offset, str(i), fontsize=8, color='blue')  # Adjust position and color if needed
-
-    for i, (x, y) in enumerate(zip(manual_x_coords, manual_y_coords)):
-        plt.text(x + offset, y + offset, str(i), fontsize=8, color='red')  # Adjust position and color if needed
 
     # Add labels and title
     plt.xlabel('X-axis')
@@ -107,8 +103,8 @@ def draw_calculated_points(pos_dict):
 def get_8_8_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left_coordinates, top_right_coordinates):
     avg_height = np.average([bottom_left_coordinates[2], bottom_right_coordinates[2], top_left_coordinates[2], top_right_coordinates[2]])
     pos_dict: dict[int, List[float]] = {}
-    delta_y = np.average([bottom_right_coordinates[1] - bottom_left_coordinates[1], top_right_coordinates[1] - top_left_coordinates[1]]) / 8
-    delta_x = np.average([bottom_right_coordinates[0] - top_right_coordinates[0], bottom_left_coordinates[0] - top_left_coordinates[0]]) / 8
+    delta_y = np.average([bottom_right_coordinates[1] - bottom_left_coordinates[1], top_right_coordinates[1] - top_left_coordinates[1]]) / 7
+    delta_x = np.average([bottom_right_coordinates[0] - top_right_coordinates[0], bottom_left_coordinates[0] - top_left_coordinates[0]]) / 7
     for i in range(64):
         x = int(i // 8)
         y = int(i % 8)
