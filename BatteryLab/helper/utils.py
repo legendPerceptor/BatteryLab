@@ -7,6 +7,7 @@ from enum import Enum
 import numpy as np
 from typing import List
 from ..robots.Constants import AssemblyRobotConstants, ComponentProperty
+from matplotlib import pyplot as plt
 
 class SupportedDevices(Enum):
     ZaberLinearRail = 1
@@ -59,6 +60,49 @@ def get_proper_port_for_device(device_name: SupportedDevices):
     print("selected port: ", selected_port)
     return selected_port
 
+def draw_calculated_points(pos_dict):
+    x_coords = []
+    y_coords = []
+    manual_x_coords = []
+    manual_y_coords = []
+    for i in range(64):
+        x = int(i // 8)
+        y = int(i % 8)
+        if (x == 0 and y == 0) or (x == 7 and y == 0) or (x == 0 and y == 7) or (x == 7 and y == 7):
+            manual_x_coords.append(pos_dict[i][0])
+            manual_y_coords.append(pos_dict[i][1])
+        else:
+            x_coords.append(pos_dict[i][0])
+            y_coords.append(pos_dict[i][1])
+    plt.figure(figsize=(8, 6))
+    plt.scatter(x_coords, y_coords, color='blue')  # Plot the points
+    plt.scatter(manual_x_coords, manual_y_coords, color='red', s=5)
+    for i in range(4):
+        if i == 0 or i == 2:
+            points_x = [manual_x_coords[i], manual_x_coords[(i+1) % 4]]
+            points_y = [manual_y_coords[i], manual_y_coords[(i+1) % 4]]
+            plt.plot(points_x, points_y, color='r', linewidth=1)
+        if i == 0 or i == 1:
+            points_x = [manual_x_coords[i], manual_x_coords[(i+2) % 4]]
+            points_y = [manual_y_coords[i], manual_y_coords[(i+2) % 4]]
+            plt.plot(points_x, points_y, color='r', linewidth=1)
+    
+    # Add index labels near each point
+    offset = 0.04
+    for i, (x, y) in enumerate(zip(x_coords, y_coords)):
+        plt.text(x + offset, y + offset, str(i), fontsize=8, color='blue')  # Adjust position and color if needed
+
+    for i, (x, y) in enumerate(zip(manual_x_coords, manual_y_coords)):
+        plt.text(x + offset, y + offset, str(i), fontsize=8, color='red')  # Adjust position and color if needed
+
+    # Add labels and title
+    plt.xlabel('X-axis')
+    plt.ylabel('Y-axis')
+    plt.title('Scatter Plot of Points')
+    # Display the grid and axes
+    plt.grid(True)
+    project_dir = "/home/yuanjian/Research/BatteryLab/logs/"
+    plt.savefig(project_dir + 'generated_points.png')
 
 def get_8_8_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left_coordinates, top_right_coordinates):
     avg_height = np.average([bottom_left_coordinates[2], bottom_right_coordinates[2], top_left_coordinates[2], top_right_coordinates[2]])
@@ -66,9 +110,19 @@ def get_8_8_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left
     delta_y = np.average([bottom_right_coordinates[1] - bottom_left_coordinates[1], top_right_coordinates[1] - top_left_coordinates[1]]) / 8
     delta_x = np.average([bottom_right_coordinates[0] - top_right_coordinates[0], bottom_left_coordinates[0] - top_left_coordinates[0]]) / 8
     for i in range(64):
-        x = i / 8
-        y = i % 8
-        pos_dict[i] = [top_left_coordinates[0] + x * delta_x, top_left_coordinates[1] + y * delta_y, avg_height] + bottom_left_coordinates[3:]
+        x = int(i // 8)
+        y = int(i % 8)
+        if x == 0 and y == 0:
+            pos_dict[i] = top_left_coordinates
+        elif x == 7 and y == 0:
+            pos_dict[i] = bottom_left_coordinates
+        elif x == 0 and y == 7:
+            pos_dict[i] = top_right_coordinates
+        elif x == 7 and y == 7:
+            pos_dict[i] = bottom_right_coordinates
+        else:
+            pos_dict[i] = [float(top_left_coordinates[0] + x * delta_x), float(top_left_coordinates[1] + y * delta_y), float(avg_height)] + bottom_left_coordinates[3:]
+    draw_calculated_points(pos_dict)
     return pos_dict
 
 def create_robot_constants_from_manual_positions(manual_positions) -> AssemblyRobotConstants:

@@ -14,7 +14,7 @@ class Meca500RobotConstants(BaseModel):
     TCP_GP: List[float] = [49.5, 0, 13.95, 45, 0, 0]
     TCP_SK: List[float] = [34.479, 11.2, 84.3116, 0, 30, 0]
     HOME_GP_J: List[float] = [0, 0, 0, 0, 0, 0]
-    HOME_SK_J: List[float] = [-90, 0, 0, 0, 60, 0]
+    HOME_SK_J: List[float] = [0, 0, 0, 0, 0, 0]
     HOME_POST_J: List[float] = [0, 0, 0, 0, 0, 0]
     HOME_SK_J: List[float] = [0, 0 ,0 ,0 ,0 ,0]
     SNAP_SHOT_GRAB_PO: List[float] = [ -29.527, 200.934, 91.81, -175.0, 0.0, 90.0]

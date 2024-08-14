@@ -29,13 +29,14 @@ class Meca500():
             self.exitRobot()
 
     def exitRobot(self):
-        # self.robot.DeactivateRobot()
+        self.robot.DeactivateRobot()
         self.robot.Disconnect()
         self.robot = None
-        self.logger.info("The robot is deactivated!")
+        self.logger.info("The robot is deactivated and disconnected!")
 
-    def initializeRobot(self):
+    def initializeRobot(self) -> bool:
         try:
+            self.logger.info(f"Trying to connect to Meca500 with IP Address: {self.robot_address}")
             self.robot.Connect(address=self.robot_address)
         except mdr.CommunicationError as e:
             self.logger.info(f"Robot failed to connect. Check if the IP address {self.robot_address} is correct! Error: {e}")
@@ -50,11 +51,11 @@ class Meca500():
             if tools.robot_model_is_meca500(self.robot.GetRobotInfo().robot_model):
                 self.logger.info("The robot is confirmed to be Meca500!")
                 # TODO: Set Gripper Force, Joint Velocity and other parameters
-                self.robot.SetGripperForce(self.RobotConstants.GRIP_F)
-                self.robot.SetGripperVel(self.RobotConstants.GRIP_VEL)
-                self.robot.SetCartLinVel(self.RobotConstants.L_VEL)
-                self.robot.SetJointVel(self.RobotConstants.J_VEL)
-                self.robot.SetJointAcc(20)
+                # self.robot.SetGripperForce(self.RobotConstants.GRIP_F)
+                # self.robot.SetGripperVel(self.RobotConstants.GRIP_VEL)
+                # self.robot.SetCartLinVel(self.RobotConstants.L_VEL)
+                # self.robot.SetJointVel(self.RobotConstants.J_VEL)
+                # self.robot.SetJointAcc(20)
                 self.robot.MoveJoints(0, 0, 0, 0, 0, 0)
                 self.logger.info("Assembly Meca500 is initilized!")
         except Exception as exception:
@@ -73,6 +74,7 @@ class Meca500():
         else:
             print("suction pump is successfully connected!")
             self.logger.info("suction pump is successfully connected!")
+        return True
 
     def change_tool(self, tool_name: RobotTool):
         if tool_name == RobotTool.GRIPPER:
@@ -85,6 +87,7 @@ class Meca500():
             self.home = self.RobotConstants.HOME_SK_J
     
     def move_home(self):
+        self.logger.debug(f"Meca 500 moving to home at {self.home}")
         self.robot.MoveJoints(*self.home)
         self.robot.WaitIdle(30)
 
@@ -111,6 +114,7 @@ class Meca500():
         self.robot.MoveJoints(*self.RobotConstants.HOME_SK_J)
 
     def pick_place(self, grab_pos, is_grab = True):
+        self.logger.info(f"Starting picking component at {grab_pos}")
         self.robot.MovePose(grab_pos[0], grab_pos[1], grab_pos[2] + 20, grab_pos[3], grab_pos[4], grab_pos[5])
         # Linearly moving down to grab the component and go back
         self.robot.Delay(0.5)

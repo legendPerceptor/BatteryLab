@@ -4,7 +4,6 @@ from BatteryLab.helper.Logger import Logger
 from BatteryLab.robots.AutoCorrection import AutoCorrection
 from BatteryLab.robots.Constants import AssemblyRobotConstants, Components, AssemblySteps, ComponentProperty
 from BatteryLab.helper.utils import create_robot_constants_from_manual_positions
-from BatteryLab.robots.ZaberRail import ZaberRail
 from linear_rail_control.linear_rail_client import LinearRailClient
 import numpy as np
 
@@ -18,15 +17,15 @@ from ament_index_python.packages import get_package_share_path
 
 class AssemblyRobot(Node):
 
-    def __init__(self, logger = None):
+    def __init__(self, logger = None, robot_address="192.168.0.100"):
         super().__init__('assembly_robot')
         self.dir_name = "experiment_results"
-        self.rail_meca500 = Meca500(logger=logger, log_path="./rail_meca500.log", robot_address="192.168.0.101")
+        self.rail_meca500 = Meca500(logger=logger, robot_address=robot_address)
         self.status = dict(Progress=dict(Initiate=0, LastStep=None), Meca500Ready=False, ZaberRailReady=False)
         self.logger = Logger(logger_name="Assembly Robot", log_path="logs", logger_filename="assembly_robot.log") if logger is None else logger
         self.zaber_rail = LinearRailClient()
         self.assemblyRobotConstants = AssemblyRobotConstants()
-        self.auto_correction = AutoCorrection()
+        self.auto_correction = AutoCorrection(logger=logger)
         self.initialize_and_home_robots()
 
     def initialize_and_home_robots(self):
@@ -41,18 +40,21 @@ class AssemblyRobot(Node):
         """
         # Move to the rail position
         self.logger.info(f"Assembly Robot Moving to {rail_position}.")
-        self.zaber_rail.send_move_request(rail_position)
+        future = self.zaber_rail.send_move_request(rail_position)
+
+        self.logger.debug(f"Assembly Robot move request finished")
 
         # Prepare proper tooling for grabbing components
         # if abs(grab_position[0]) >= 160:
         #     self.rail_meca500.change_tool(RobotTool.GRIPPER)
         # else:
         #     self.rail_meca500.change_tool(RobotTool.SUCTION)
-        self.rail_meca500.change_tool(RobotTool.SUCTION)
+        # self.rail_meca500.change_tool(RobotTool.SUCTION)
 
         # Move home based on the tooling
         self.rail_meca500.move_home()
 
+        self.logger.debug(f"Assembly Robot moved home and start picking soon.")
         # Let Meca500 pick up the component and move it home
         self.rail_meca500.pick_place(grab_position, is_grab=is_grab)
 
@@ -144,7 +146,8 @@ class AssemblyRobot(Node):
 
 def main():
     rclpy.init()
-    robot = AssemblyRobot()
+    logger = Logger("assembly_robot_test", "/home/yuanjian/Research/BatteryLab/logs", "assembly_robot_test.log")
+    robot = AssemblyRobot(logger=logger, robot_address="192.168.0.100")
     position_file = Path(get_package_share_path("assembly_robot")) / "yaml" / "well_positions.yaml"
     with open(position_file, "r") as f:
         try:
@@ -155,11 +158,10 @@ def main():
     assembly_robot_constants = create_robot_constants_from_manual_positions(constant_positions)
     grabpos = assembly_robot_constants.Separator.grabPo
     railpos = assembly_robot_constants.Separator.railPo
-    for i in range(64):
+    for i in [63]:
         print(f"reaching the position of well {i}: {grabpos[i]}")
         robot.grab_component(railpos, grabpos[i], is_grab=True)
         robot.grab_component(railpos, grabpos[i], is_grab=False)
-    rclpy.spin(robot)
     robot.destroy_node()
     rclpy.shutdown()
 

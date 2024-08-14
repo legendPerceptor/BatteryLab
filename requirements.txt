@@ -9,3 +9,4 @@ colcon-common-extensions
 rosdep
 lark
 empy
+matplotlib
