@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import List
 from rclpy.node import Node
 import rclpy
+import time
 
 from ament_index_python.packages import get_package_share_path
 
@@ -41,6 +42,20 @@ class AssemblyRobot(Node):
         # Move to the rail position
         self.logger.info(f"Assembly Robot Moving to {rail_position}.")
         future = self.zaber_rail.send_move_request(rail_position)
+
+        while rclpy.ok():
+            rclpy.spin_once(self)
+            print("waiting for the moving request to complete...")
+            time.sleep(1)
+            if future.done():
+                try:
+                    response = future.result()
+                except Exception as e:
+                    self.logger.error("Service call failed and Zaber rail cannot move")
+                else:
+                    self.logger.info(f"Moving request success: {response.success}")
+                break
+        # make sure the move is finished
 
         self.logger.debug(f"Assembly Robot move request finished")
 
@@ -162,6 +177,9 @@ def main():
         print(f"reaching the position of well {i}: {grabpos[i]}")
         robot.grab_component(railpos, grabpos[i], is_grab=True)
         robot.grab_component(railpos, grabpos[i], is_grab=False)
+    
+    robot.grab_component(railpos, grabpos[56], is_grab=True)
+    robot.grab_component(assembly_robot_constants.POST_RAIL_LOCATION, assembly_robot_constants.POST_C_SK_PO, is_grab=False)
     robot.destroy_node()
     rclpy.shutdown()
 

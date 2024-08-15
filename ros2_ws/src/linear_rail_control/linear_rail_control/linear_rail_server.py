@@ -43,6 +43,7 @@ class LinearRailServer(Node):
         except ZaberRailConnectionError as e:
             print(f"Caught an error in LinearRailServer: {e}")
             response.success = False
+        self.get_logger().debug(f"Returning the moving response back to client")
         return response
 
 def main(args=None):
