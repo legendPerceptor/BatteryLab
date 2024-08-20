@@ -44,20 +44,20 @@ class AssemblyRobot(Node):
         future = self.zaber_rail.send_move_request(rail_position)
 
         while rclpy.ok():
-            rclpy.spin_once(self)
-            print("waiting for the moving request to complete...")
+            rclpy.spin_once(self.zaber_rail)
+            self.get_logger().info("waiting for the moving request to complete...")
             time.sleep(1)
             if future.done():
                 try:
                     response = future.result()
                 except Exception as e:
-                    self.logger.error("Service call failed and Zaber rail cannot move")
+                    self.get_logger().error("Service call failed and Zaber rail cannot move")
                 else:
-                    self.logger.info(f"Moving request success: {response.success}")
+                    self.get_logger().info(f"Moving request success: {response.success}")
                 break
         # make sure the move is finished
 
-        self.logger.debug(f"Assembly Robot move request finished")
+        self.get_logger().debug(f"Assembly Robot move request finished")
 
         # Prepare proper tooling for grabbing components
         # if abs(grab_position[0]) >= 160:
