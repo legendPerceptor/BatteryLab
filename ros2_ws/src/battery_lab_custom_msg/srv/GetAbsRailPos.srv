@@ -1,0 +1,4 @@
+int32 get
+---
+float32 current_pos
+bool connected

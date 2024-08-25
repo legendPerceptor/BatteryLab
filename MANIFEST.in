@@ -1,0 +1,4 @@
+exclude ros2_ws/*
+exclude drafts/
+exclude tests/
+exclude logs/
