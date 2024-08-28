@@ -9,7 +9,7 @@ class CameraService(Node):
     def __init__(self):
         super().__init__('camera_service')
         self.declare_parameter('service_name', '/batterylab/capture_image')
-        service_name = self.get_parameter('my_param').get_parameter_value().string_value
+        service_name = self.get_parameter('service_name').get_parameter_value().string_value
         self.srv = self.create_service(CaptureImage, service_name, self.capture_image_callback)
         self.cap = cv2.VideoCapture(0)
         self.br = CvBridge()
