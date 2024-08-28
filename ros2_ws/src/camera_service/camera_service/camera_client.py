@@ -8,7 +8,9 @@ import cv2
 class ImageClient(Node):
     def __init__(self):
         super().__init__('image_client')
-        self.cli = self.create_client(CaptureImage, '/batterylab/capture_image')
+        self.declare_parameter('service_name', '/batterylab/capture_image')
+        service_name = self.get_parameter('service_name').get_parameter_value().string_value
+        self.cli = self.create_client(CaptureImage, service_name)
         while not self.cli.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Service not available, waiting again...')
         self.req = CaptureImage.Request()
