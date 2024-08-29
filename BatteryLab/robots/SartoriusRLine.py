@@ -1,6 +1,7 @@
 import serial
 import time
-from ..helper import Logger
+from ..helper.Logger import Logger
+from ..helper.utils import get_proper_port_for_device, SupportedDevices
 
 PRE = bytes([0x01])
 POST = bytes([0x0d]) # or POST = str.encode('\r') 
@@ -140,26 +141,24 @@ class SartoriusRLine():
 
     def initiate_rline(self):
         con_res = self.check_connection()
-        if con_res == True:
-            pass
-        else:
-            self.port.open()
+        if not con_res:
+            self.serial.open()
         time.sleep(0.2)
         home_res = self.sendCmd("RESET")
-        #print(self.readFeedback())
+        print("feedback:", self.readFeedback())
         time.sleep(5)
         speed1_res = self.sendCmd("INWARD_SPEED_3")
-        # print(self.readFeedback())
+        print("feedback:", self.readFeedback())
         time.sleep(1)
         speed2_res = self.sendCmd("OUTWARD_SPEED_3")
-        # print(self.readFeedback())
+        print("feedback:", self.readFeedback())
         return all([con_res, home_res[0], speed1_res[0], speed2_res[0]])
     
     def aspirate(self, volume):
-        return self.sendCmd("RUN_INWARDS", round(volume/0.5))
+        return self.sendCmd("RUN_INWARDS", round(volume))
 
     def dispense(self, volume):
-        return self.sendCmd("RUN_OUTWARDS", round(volume/0.5))
+        return self.sendCmd("RUN_OUTWARDS", round(volume))
 
     def clear_and_reset(self):
         return self.sendCmd("BLOWOUT_AND_MOVE", 30)
@@ -176,6 +175,35 @@ class SartoriusRLine():
     def eject_and_home(self):
         return self.sendCmd("EJECT_AND_HOME")
 
-    def disconnect_pipette(self):
-        self.port.close()
-        return 'PipetteController disconnected!'
+    def disconnect(self):
+        self.serial.close()
+        self.logger.info('Sartorius rLine disconnected!')
+    
+def sartorius_example_app():
+    sartorius_rline = SartoriusRLine(port=get_proper_port_for_device(device_name=SupportedDevices.SartoriusRLine))
+    ok = sartorius_rline.initiate_rline()
+    if not ok:
+        print("Cannot connect to Sartorius rLine.")
+        exit()
+    try:
+        while True:
+            input_str = input("Press [Enter] to quit, [P] to pick up pipette, [E] to eject pipette,\n[A] to aspirate liquid, [D] to dispense liquid").strip().lower()
+            if input_str == '':
+                break
+            elif input_str == 'P':
+                sartorius_rline.blowout()
+            elif input_str == 'E':
+                sartorius_rline.eject_and_home()
+            elif input_str == 'A':
+                volume = float(input("Please input the volume to aspirate: ").strip())
+                sartorius_rline.aspirate(volume)
+            elif input_str == 'D':
+                volume = float(input("Please input the volume to dispense: ").strip())
+                sartorius_rline.dispense(volume)
+            else:
+                print("Invalid input. Please enter a valid option.")
+    except KeyboardInterrupt:
+        print("Program interrupted by user.")
+    finally:
+        sartorius_rline.disconnect()
+        print("Sartorius rLine disconnected safely.")

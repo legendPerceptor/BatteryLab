@@ -9,7 +9,7 @@ class RailMeca500(Meca500):
 
     def __init__(self, logger = None, log_path="logs", logger_filename="Meca500.log", robot_address="192.168.0.101",
                  robot_constants_config_file=Path(__file__).parent.parent / "configs" / "RailMeca500.yaml"):
-        super(logger, log_path, logger_filename, robot_address, robot_constants_config_file)
+        super().__init__(logger, log_path, logger_filename, robot_address, robot_constants_config_file)
         self.suction_pump = SuctionPump(self.logger, self.status, vacuum_port=get_proper_port_for_device(SupportedDevices.SuctionPump))
         self.tool = RobotTool.SUCTION
 

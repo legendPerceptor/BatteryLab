@@ -17,7 +17,7 @@ class SupportedDevices(Enum):
 DeviceToSerialDict = {
     SupportedDevices.ZaberLinearRail : "FTDI_FT232R_USB_UART_A10NH07T",
     SupportedDevices.SuctionPump: "1a86_USB_Serial",
-    SupportedDevices.SartoriusRLine: "TODO"
+    SupportedDevices.SartoriusRLine: "FTDI_USB-RS232_Cable_FT4WM2HM"
 }
 
 def get_proper_port_for_device(device_name: SupportedDevices):

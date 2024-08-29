@@ -6,7 +6,7 @@ class BreadBoardMeca500(Meca500):
 
     def __init__(self, logger = None, log_path="logs", logger_filename="Meca500.log", robot_address="192.168.0.101",
                  robot_constants_config_file=Path(__file__).parent.parent / "configs" / "BreadBoardMeca500.yaml"):
-        super(logger, log_path, logger_filename, robot_address, robot_constants_config_file)
+        super().__init__(logger, log_path, logger_filename, robot_address, robot_constants_config_file)
     
 
 def breadboard_meca500_example_app():

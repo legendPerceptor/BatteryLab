@@ -7,14 +7,15 @@ from BatteryLab.robots.RailMeca500 import rail_meca500_example_app
 from BatteryLab.robots.BreadboardMeca500 import breadboard_meca500_example_app
 from BatteryLab.robots.Meca500 import test_config_file_location
 from BatteryLab.camera.camera_utility import send_image, receive_image
+from BatteryLab.robots.SartoriusRLine import sartorius_example_app
 
 def main():
     help_str = """Choose which app to use in the Battery Lab CLI program.
 Options: 1. suction, 2. zaber_rail, 3. rail_meca500 4. breadboard_meca500
-5. camera_master, 6. camera_slave, 7. file_location_test
+5. camera_master, 6. camera_slave, 7. file_location_test, 8. sartorius_rline
 """
     print(help_str)
-    mode = input("Please select which app to use: ")
+    mode = input("Please select which app to use: ").strip().lower()
 
     if mode == 'suction' or mode == '1':
         suction_cli_app()
@@ -31,6 +32,8 @@ Options: 1. suction, 2. zaber_rail, 3. rail_meca500 4. breadboard_meca500
         send_image(ip=ip_address, port=9999)
     elif mode == 'file_location_test' or mode == '7':
         test_config_file_location()
+    elif mode == 'sartorius_rline' or mode == '8':
+        sartorius_example_app()
     else:
         print("Your options are not valid! Program will exit!")
 
