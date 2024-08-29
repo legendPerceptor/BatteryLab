@@ -1,4 +1,5 @@
 import serial
+import time
 from ..helper import Logger
 
 PRE = bytes([0x01])
@@ -95,3 +96,86 @@ class SartoriusRLine():
             self.logger.debug("nack received")
             self.parseError(answer)
             return (False, len(answer))
+        
+    def readFeeback(self):
+        content = self.serial.read_util(b'\r')
+        return content
+
+    def check_connection(self):
+        return self.serial.is_open()
+    
+    def sendCmd(self, cmd, pos = 1):
+        if cmd in REGULAR_COMMANDS.keys():
+            msg = PRE + str.encode(ADR) +  REGULAR_COMMANDS[cmd][0] + POST
+            self.serial.write(msg)
+            #time.sleep(0.05)
+            res = self.serial.read_until(b'\r')
+            if b'er' in res:
+                self.parseError(res)
+            elif REGULAR_COMMANDS[cmd][1] in res:
+                return (True, REGULAR_COMMANDS[cmd][0])
+        elif cmd in DISPLAY_COMMANDS.keys():
+            msg = PRE + str.encode(ADR) +  DISPLAY_COMMANDS[cmd][0] + POST
+            self.serial.write(msg)
+            #time.sleep(0.05)
+            res = self.serial.read_until(b'\r')
+            while not DISPLAY_COMMANDS[cmd][1] in res:
+                res = self.serial.read_until(b'\r')
+            return int(res[4:-2])
+        elif cmd in POSITIONAL_COMMANDS.keys():
+            msg = PRE + str.encode(ADR) +  POSITIONAL_COMMANDS[cmd][0] + str.encode(str(pos)) + POST
+            self.serial.write(msg)
+            #time.sleep(0.05)
+            res = self.serial.read_until(b'\r')
+            if b'er' in res:
+                self.parseError(res)
+            elif POSITIONAL_COMMANDS[cmd][1] in res:
+                return (True, POSITIONAL_COMMANDS[cmd][0])
+        
+    def tellPosition(self):
+        return self.sendCmd("DISPLAY_POSITION")
+        
+    def tellLevel(self):
+        return self.sendCmd("DISPLAY_LIQUID_LEVEL")
+
+    def initiate_rline(self):
+        con_res = self.check_connection()
+        if con_res == True:
+            pass
+        else:
+            self.port.open()
+        time.sleep(0.2)
+        home_res = self.sendCmd("RESET")
+        #print(self.readFeedback())
+        time.sleep(5)
+        speed1_res = self.sendCmd("INWARD_SPEED_3")
+        # print(self.readFeedback())
+        time.sleep(1)
+        speed2_res = self.sendCmd("OUTWARD_SPEED_3")
+        # print(self.readFeedback())
+        return all([con_res, home_res[0], speed1_res[0], speed2_res[0]])
+    
+    def aspirate(self, volume):
+        return self.sendCmd("RUN_INWARDS", round(volume/0.5))
+
+    def dispense(self, volume):
+        return self.sendCmd("RUN_OUTWARDS", round(volume/0.5))
+
+    def clear_and_reset(self):
+        return self.sendCmd("BLOWOUT_AND_MOVE", 30)
+
+    def reset(self):
+        return self.sendCmd("RESET")
+
+    def blowout(self):
+        return self.sendCmd('RUN_BLOWOUT')
+
+    def eject(self):
+        return self.sendCmd("RUN_TIP_EJECT_CYCLE")
+
+    def eject_and_home(self):
+        return self.sendCmd("EJECT_AND_HOME")
+
+    def disconnect_pipette(self):
+        self.port.close()
+        return 'PipetteController disconnected!'
