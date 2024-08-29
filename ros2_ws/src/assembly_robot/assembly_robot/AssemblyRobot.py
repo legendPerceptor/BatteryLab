@@ -1,5 +1,5 @@
 #!/home/yuanjian/Research/BatteryLab/lab_venv/bin/python3
-from BatteryLab.robots.Meca500 import Meca500, RobotTool
+from BatteryLab.robots.Meca500 import Meca500
 from BatteryLab.helper.Logger import Logger
 from BatteryLab.robots.AutoCorrection import AutoCorrection
 from BatteryLab.robots.Constants import AssemblyRobotConstants, Components, AssemblySteps, ComponentProperty

@@ -12,10 +12,12 @@ from matplotlib import pyplot as plt
 class SupportedDevices(Enum):
     ZaberLinearRail = 1
     SuctionPump = 2
+    SartoriusRLine = 3
 
 DeviceToSerialDict = {
     SupportedDevices.ZaberLinearRail : "FTDI_FT232R_USB_UART_A10NH07T",
-    SupportedDevices.SuctionPump: "1a86_USB_Serial"
+    SupportedDevices.SuctionPump: "1a86_USB_Serial",
+    SupportedDevices.SartoriusRLine: "TODO"
 }
 
 def get_proper_port_for_device(device_name: SupportedDevices):
