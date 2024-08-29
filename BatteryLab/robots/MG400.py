@@ -1,5 +1,7 @@
 from .dobot.dobot_api import DobotApi, DobotApiDashboard, DobotApiMove
 from ..helper.Logger import Logger
+from .SartoriusRLine import SartoriusRLine
+from ..helper.utils import get_proper_port_for_device, SupportedDevices
 
 class MG400():
     def __init__(self, logger = None, log_path="logs", logger_filename="MG400.log",
@@ -8,10 +10,11 @@ class MG400():
         self.dashboardPort = dashboardPort
         self.movePort = movePort
         self.feedPort = feedPort
-        self.logger = Logger("Meca500", log_path=log_path, logger_filename=logger_filename) if logger is None else logger
+        self.logger = Logger("MG400", log_path=log_path, logger_filename=logger_filename) if logger is None else logger
         self.dashboard = DobotApiDashboard(ip=ip, port=dashboardPort)
         self.movectl = DobotApiMove(ip=ip, port=movePort)
         self.feed = DobotApi(ip=ip, port=feedPort)
+        self.sartorius_rline = SartoriusRLine(port=get_proper_port_for_device(SupportedDevices.SartoriusRLine), logger=self.logger)
 
     def stand_by(self):
         pass
