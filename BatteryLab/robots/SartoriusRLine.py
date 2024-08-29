@@ -1,4 +1,5 @@
 import serial
+from ..helper import Logger
 
 PRE = bytes([0x01])
 POST = bytes([0x0d]) # or POST = str.encode('\r') 
@@ -58,7 +59,7 @@ POSITIONAL_COMMANDS = {
 
 class SartoriusRLine():
 
-    def __init__(self, port):
+    def __init__(self, port, logger = None, log_path="logs", log_file="sartorius_rline.log"):
         self.serial = serial.Serial()
         self.serial.port = port
         self.serial.baudrate = 9600
@@ -66,6 +67,7 @@ class SartoriusRLine():
         self.serial.stopbits=serial.STOPBITS_ONE
         self.serial.bytesize=serial.EIGHTBITS
         self.serial.timeout=1
+        self.logger = logger if logger is not None else Logger(logger_name="Sartorius RLine Logger", log_path=log_path, logger_filename=log_file)
 
     def parseError(self, answer):
         if ERROR_CODES["err_codes"][0] in answer:
@@ -78,3 +80,18 @@ class SartoriusRLine():
             print("The drive is on and the command or query cannot be answered.")
         else:
             print("Error code unrecognized!")
+    
+    def waitAck(self, ans):
+        char = self.port.read(1)
+        answer = str(char)
+        while(char):
+            char = self.port.read(1)
+            answer += str(char)
+        self.logger.debug(answer)
+        if ans in answer:
+            self.logger.debug("Acknowledge received")
+            return (True, len(answer))
+        else:
+            self.logger.debug("nack received")
+            self.parseError(answer)
+            return (False, len(answer))

@@ -12,9 +12,6 @@ class Meca500():
 
     def __init__(self, logger = None, log_path="logs", logger_filename="Meca500.log", robot_address="192.168.0.101",
                  robot_constants_config_file=Path(__file__).parent.parent / "configs" / "BreadBoardMeca500.yaml", robot_name="Meca500"):
-        self.robot = Robot()
-        self.robot_address = robot_address
-        self.logger = Logger("Meca500", log_path=log_path, logger_filename=logger_filename) if logger is None else logger
         try:
             with open(robot_constants_config_file, 'r') as file:
                 yaml_data = yaml.safe_load(file)
@@ -23,6 +20,10 @@ class Meca500():
             self.logger.error("Cannot load the robot constants: ", e)
             print("Program will exit because it cannot load robot constants")
             exit()
+
+        self.robot = Robot()
+        self.robot_address = robot_address
+        self.logger = Logger("Meca500", log_path=log_path, logger_filename=logger_filename) if logger is None else logger
 
         self.robot_name = robot_name
     
@@ -99,3 +100,7 @@ class Meca500():
             self.logger.info('Robot finished drawing square.')
         except Exception as e:
             self.logger.info(f"Drawing square has an error: {e}")
+
+def test_config_file_location():
+    file_path = Path(__file__).parent.parent / "configs" / "BreadBoardMeca500.yaml"
+    print(file_path)

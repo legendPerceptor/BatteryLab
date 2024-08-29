@@ -1,5 +1,5 @@
 #!/home/yuanjian/Research/BatteryLab/lab_venv/bin/python3
-from BatteryLab.robots.Meca500 import Meca500
+from BatteryLab.robots.RailMeca500 import RailMeca500
 from BatteryLab.helper.Logger import Logger
 from BatteryLab.robots.AutoCorrection import AutoCorrection
 from BatteryLab.robots.Constants import AssemblyRobotConstants, Components, AssemblySteps, ComponentProperty
@@ -21,7 +21,7 @@ class AssemblyRobot(Node):
     def __init__(self, logger = None, robot_address="192.168.0.100"):
         super().__init__('assembly_robot')
         self.dir_name = "experiment_results"
-        self.rail_meca500 = Meca500(logger=logger, robot_address=robot_address)
+        self.rail_meca500 = RailMeca500(logger=logger, robot_address=robot_address)
         self.status = dict(Progress=dict(Initiate=0, LastStep=None), Meca500Ready=False, ZaberRailReady=False)
         self.logger = Logger(logger_name="Assembly Robot", log_path="logs", logger_filename="assembly_robot.log") if logger is None else logger
         self.zaber_rail = LinearRailClient()
