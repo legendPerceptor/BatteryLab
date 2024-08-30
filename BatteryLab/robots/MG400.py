@@ -16,19 +16,47 @@ class MG400():
         self.movePort = movePort
         self.feedPort = feedPort
         self.logger = Logger("MG400", log_path=log_path, logger_filename=logger_filename) if logger is None else logger
-        self.dashboard = DobotApiDashboard(ip=ip, port=dashboardPort)
-        self.movectl = DobotApiMove(ip=ip, port=movePort)
-        self.feed = DobotApi(ip=ip, port=feedPort)
+        self.dashboard = None
+        self.movectl = None
+        self.feed = None
         self.sartorius_rline = SartoriusRLine(port=get_proper_port_for_device(SupportedDevices.SartoriusRLine), logger=self.logger)
         self.position_file = mg400_position_file
-        self.home :List[float]= []
+        self.home :List[float]= [0, 0, 0, 0]
         self.well_poses: List[List[float]] = []
+    
+    def intialize_robot(self) -> bool:
+        try:
+            self.dashboard = DobotApiDashboard(ip=self.ip, port=self.dashboardPort)
+            self.movectl = DobotApiMove(ip=self.ip, port=self.movePort)
+            self.feed = DobotApi(ip=self.ip, port=self.feedPort)
+        except Exception as e:
+            self.logger.error("Cannot connect to the MG400, error: ", e)
+            return False
+        
+        try:
+            self.parse_position_file()
+        except Exception as e:
+            self.logger.error("Failed to load the config file for MG400, error:", e)
+            return False
+        self.dashboard.EnableRobot()
+        return True
 
-    def stand_by(self):
-        pass
+    def disconnect(self):
+        self.dashboard.DisableRobot()
+
+    def move_home(self):
+        self.movectl.JointMovJ(*self.home)
 
     def move_to_tip_case(self, x, y):
-        pass
+        down_pos = self.well_poses[x][y]
+        upper_pos = [down_pos[0], down_pos[1], down_pos[2] + 30, down_pos[3]]
+        self.movectl.MovJ(*upper_pos)
+        self.movectl.wait_reply()
+        self.movectl.MovL(*down_pos)
+        self.movectl.wait_reply()
+        self.movectl.MovL(*upper_pos)
+        self.movectl.wait_reply()
+        self.logger.info(f"finished moving to tipcase at ({x}, {y}).")
 
     def get_tip(self):
         pass
@@ -53,12 +81,26 @@ class MG400():
                          tipcase["bottom_right"]["cartesian"], tipcase["top_left"]["cartesian"], tipcase["top_right"]["cartesian"], m, n)
 
 def mg400_example():
-    position_file = Path(__file__).parent.parent / "configs" / "MG400positions.yaml"
-    with open(position_file) as f:
-            config = yaml.safe_load(f)
-    home = config["Home"]["joints"]
-    tipcase = config["TipCase"]
-    well_poses = get_m_n_well_pos(tipcase["bottom_left"]["cartesian"],
-                         tipcase["bottom_right"]["cartesian"], tipcase["top_left"]["cartesian"], tipcase["top_right"]["cartesian"], 8, 12)
-    print("Home:", home)
-    print("well_poses:", well_poses)
+    mg400 = MG400(ip="192.168.0.107")
+    ok = mg400.intialize_robot()
+    if not ok:
+        print("Failed to initialize MG400, program aborted!")
+        exit()
+    try:
+        while True:
+            input_str = input("Press [Enter] to quit, [0] to home the robot, [M] to drive to tip case: ").strip().lower()
+            if input_str == '':
+                break
+            elif input_str == '0':
+                mg400.move_home()
+            elif input_str == 'm':
+                x = int(input("Please input tip location x:").strip())
+                y = int(input("Please input tip location y:").strip())
+                mg400.move_to_tip_case(x, y)
+            else:
+                print("Invalid input. Please enter a valid option.")
+    except KeyboardInterrupt:
+        print("Program interrupted by user.")
+    finally:
+        mg400.disconnect()
+        print("MG400 disconnected safely.")
