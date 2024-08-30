@@ -62,25 +62,25 @@ def get_proper_port_for_device(device_name: SupportedDevices):
     print("selected port: ", selected_port)
     return selected_port
 
-def draw_calculated_points(pos_dict):
+def draw_calculated_points(pos_list, m, n):
     x_coords = []
     y_coords = []
     manual_x_coords = []
     manual_y_coords = []
     offset = 0.04
-    plt.figure(figsize=(8, 6))
-    for i in range(64):
-        x = int(i // 8)
-        y = int(i % 8)
-        if (x == 0 and y == 0) or (x == 7 and y == 0) or (x == 0 and y == 7) or (x == 7 and y == 7):
+    plt.figure(figsize=(m, n))
+    for i in range(m * n):
+        x = int(i // n)
+        y = int(i % n)
+        if (x == 0 and y == 0) or (x == m-1 and y == 0) or (x == 0 and y == n-1) or (x == m-1 and y == n-1):
             # Add index labels near each point
-            plt.text(pos_dict[i][0] + offset, pos_dict[i][1] + offset, str(i), fontsize=8, color='red')
-            manual_x_coords.append(pos_dict[i][0])
-            manual_y_coords.append(pos_dict[i][1])
+            plt.text(pos_list[i][0] + offset, pos_list[i][1] + offset, str(i), fontsize=8, color='red')
+            manual_x_coords.append(pos_list[i][0])
+            manual_y_coords.append(pos_list[i][1])
         else:
-            plt.text(pos_dict[i][0] + offset, pos_dict[i][1] + offset, str(i), fontsize=8, color='blue')
-            x_coords.append(pos_dict[i][0])
-            y_coords.append(pos_dict[i][1])
+            plt.text(pos_list[i][0] + offset, pos_list[i][1] + offset, str(i), fontsize=8, color='blue')
+            x_coords.append(pos_list[i][0])
+            y_coords.append(pos_list[i][1])
     plt.scatter(x_coords, y_coords, color='blue', s=14)  # Plot the points
     plt.scatter(manual_x_coords, manual_y_coords, color='red', s=14)
     for i in range(4):
@@ -100,28 +100,43 @@ def draw_calculated_points(pos_dict):
     # Display the grid and axes
     plt.grid(True)
     project_dir = "/home/yuanjian/Research/BatteryLab/logs/"
+    os.makedirs(project_dir, exist_ok=True)
     plt.savefig(project_dir + 'generated_points.png')
 
-def get_8_8_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left_coordinates, top_right_coordinates):
+def get_m_n_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left_coordinates, top_right_coordinates, m, n):
     avg_height = np.average([bottom_left_coordinates[2], bottom_right_coordinates[2], top_left_coordinates[2], top_right_coordinates[2]])
-    pos_dict: dict[int, List[float]] = {}
-    delta_y = np.average([bottom_right_coordinates[1] - bottom_left_coordinates[1], top_right_coordinates[1] - top_left_coordinates[1]]) / 7
-    delta_x = np.average([bottom_right_coordinates[0] - top_right_coordinates[0], bottom_left_coordinates[0] - top_left_coordinates[0]]) / 7
-    for i in range(64):
-        x = int(i // 8)
-        y = int(i % 8)
+    # pos_dict: dict[int, List[float]] = {}
+    # delta_y = np.average([bottom_right_coordinates[1] - bottom_left_coordinates[1], top_right_coordinates[1] - top_left_coordinates[1]]) / (m-1)
+    # delta_x = np.average([bottom_right_coordinates[0] - top_right_coordinates[0], bottom_left_coordinates[0] - top_left_coordinates[0]]) / (n-1)
+    pos_list: List[List[float]] = []
+    top_edge_x = np.linspace(top_left_coordinates[0], top_right_coordinates[0], n)
+    top_edge_y = np.linspace(top_left_coordinates[1], top_right_coordinates[1], n)
+    bottom_edge_x = np.linspace(bottom_left_coordinates[0], bottom_right_coordinates[0], n)
+    bottom_edge_y = np.linspace(bottom_left_coordinates[1], bottom_right_coordinates[1], n)
+    
+    grid_x = np.zeros((m, n))
+    grid_y = np.zeros((m, n))
+    
+    for i in range(n):
+        grid_x[:, i] = np.linspace(top_edge_x[i], bottom_edge_x[i], m)
+        grid_y[:, i] = np.linspace(top_edge_y[i], bottom_edge_y[i], m)
+
+    for i in range(n * m):
+        x = int(i // n)
+        y = int(i % n)
         if x == 0 and y == 0:
-            pos_dict[i] = top_left_coordinates
-        elif x == 7 and y == 0:
-            pos_dict[i] = bottom_left_coordinates
-        elif x == 0 and y == 7:
-            pos_dict[i] = top_right_coordinates
-        elif x == 7 and y == 7:
-            pos_dict[i] = bottom_right_coordinates
+            pos_list.append(top_left_coordinates)
+        elif x == m-1 and y == 0:
+            pos_list.append(bottom_left_coordinates)
+        elif x == 0 and y == n-1:
+            pos_list.append(top_right_coordinates)
+        elif x == m-1 and y == n-1:
+            pos_list.append(bottom_right_coordinates)
         else:
-            pos_dict[i] = [float(top_left_coordinates[0] + x * delta_x), float(top_left_coordinates[1] + y * delta_y), float(avg_height)] + bottom_left_coordinates[3:]
-    draw_calculated_points(pos_dict)
-    return pos_dict
+            # pos_dict[i] = [float(top_left_coordinates[0] + x * delta_x), float(top_left_coordinates[1] + y * delta_y), float(avg_height)] + bottom_left_coordinates[3:]
+            pos_list.append([grid_x[x, y], grid_y[x, y], avg_height] + bottom_left_coordinates[3:])
+    draw_calculated_points(pos_list, m, n)
+    return pos_list
 
 def create_robot_constants_from_manual_positions(manual_positions) -> AssemblyRobotConstants:
     """
@@ -184,7 +199,7 @@ Cathode:
     bottom_right_coordinates = component[bottom_right_prop][cartesian_coord_prop]
     top_left_coordinates = component[top_left_prop][cartesian_coord_prop]
     top_right_coordinates = component[top_right_prop][cartesian_coord_prop]
-    component_property.grabPo = get_8_8_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left_coordinates, top_right_coordinates)
+    component_property.grabPo = get_m_n_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left_coordinates, top_right_coordinates, 4, 4)
     setattr(constants, component_name, component_property)
 
     return constants

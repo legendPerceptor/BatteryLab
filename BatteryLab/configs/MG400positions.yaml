@@ -1,4 +1,6 @@
 TipCase:
+  m: 8
+  n: 12 
   bottom_right:
     cartesian: [71.736, 331.11, -71.51, 100.47]
     joints: []
