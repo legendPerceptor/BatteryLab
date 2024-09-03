@@ -41,19 +41,37 @@ class ComponentProperty():
     def __init__(self):
         self.railPo: List[float] = None
         self.dropPo: List[float] = None
-        self.grabPo: dict[int, List[float]] = None
+        self.grabPo: List[List[float]] = None
+
+class AssemblyRobotCameraConstants():
+    def __init__(self):
+        self.HOME_J: List[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.TRF: List[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.RobotPose: List[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.AnodeCase: float = 0.0
+        self.Anode: float = 0.0
+        self.Separator: float = 0.0
+        self.Cathode: float = 0.0
+        self.Spacer: float = 0.0
+        self.Washer: float = 0.0
+        self.CathodeCase: float = 0.0
+
 
 class AssemblyRobotConstants():
     def __init__(self):
+        self.HOME_J = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.TRF = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.POST_C_SK_PO: List[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        self.POST_RAIL_LOCATION: int = 100
-        self.AnodeCase: ComponentProperty = None
-        self.Anode: ComponentProperty = None
-        self.Separator: ComponentProperty = None
-        self.Cathode: ComponentProperty = None
-        self.Spacer: ComponentProperty = None
-        self.Washer: ComponentProperty = None
-        self.CathodeCase: ComponentProperty = None
+        self.POST_RAIL_LOCATION: float = 100.0
+        self.LOOKUP_CAM_SK_PO: List[float] = [0, 0, 0, 0, 0, 0]
+        self.LOOKUP_CAM_RAIL_LOCATION: float = 100.0
+        self.AnodeCase: List[ComponentProperty] = []
+        self.Anode: List[ComponentProperty] = []
+        self.Separator: List[ComponentProperty] = []
+        self.Cathode: List[ComponentProperty] = []
+        self.Spacer: List[ComponentProperty] = []
+        self.Washer: List[ComponentProperty] = []
+        self.CathodeCase: List[ComponentProperty] = []
 
 class StepCorrectionConfig(BaseModel):
     name: str

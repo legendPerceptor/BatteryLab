@@ -6,10 +6,10 @@ from cv_bridge import CvBridge
 import cv2
 
 class ImageClient(Node):
-    def __init__(self):
-        super().__init__('image_client')
+    def __init__(self, node_name="image_client", serv_name = None):
+        super().__init__(node_name)
         self.declare_parameter('service_name', '/batterylab/capture_image')
-        service_name = self.get_parameter('service_name').get_parameter_value().string_value
+        service_name = serv_name if serv_name is not None else self.get_parameter('service_name').get_parameter_value().string_value
         self.cli = self.create_client(CaptureImage, service_name)
         while not self.cli.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Service not available, waiting again...')

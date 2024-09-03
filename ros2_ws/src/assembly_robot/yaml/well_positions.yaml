@@ -65,7 +65,7 @@ Spacer:
     bottom_right:
       cartesian: []
       joints: []
-Cathode_Case:
+CathodeCase:
   top_left_box:
     rail_pos: -1
     top_left:
@@ -107,7 +107,7 @@ Cathode_Case:
     bottom_right:
       cartesian: [256.38627, 165.08867, -43.87541, 179.99997, -0.00005, -179.99997]
       joints: [39.80006, 80.44448, -30.26565, -85.50534, 27.00209, 115.4622]
-Anode_Case:
+AnodeCase:
   bottom_right_box:
     rail_pos: 115.0
     top_left:
