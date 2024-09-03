@@ -215,7 +215,7 @@ def main():
 :> """
     
     while True:
-        input_str = input(prompt).strip().lower()
+        input_str = input(prompt).strip().upper()
         if input_str == '':
             break
         elif input_str == 'S':

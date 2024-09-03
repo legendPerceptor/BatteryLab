@@ -60,8 +60,9 @@ class Meca500():
                 self.robot.SetCartLinVel(self.RobotConstants.L_VEL)
                 self.robot.SetJointVel(self.RobotConstants.J_VEL)
                 self.robot.SetJointAcc(20)
-                self.robot.MoveJoints(self.RobotConstants.HOME_SK_J)
+                self.robot.MoveJoints(*self.RobotConstants.HOME_SK_J)
                 self.logger.info(f"The {self.robot_name} is initialized!")
+            return True
         except Exception as exception:
             if self.robot.GetStatusRobot().error_status:
                 self.logger.info(exception)
@@ -70,6 +71,7 @@ class Meca500():
                 self.robot.ResumeMotion()
             else:
                 raise
+        return False
 
     def move_home(self, tool: RobotTool):
         self.logger.debug(f"{self.robot_name} moving to home with tool {tool.name}")

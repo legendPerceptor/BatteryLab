@@ -12,6 +12,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/yaml', ['yaml/well_positions.yaml']),
+        ('share/' + package_name + '/yaml', ['yaml/arm_camera_positions.yaml']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

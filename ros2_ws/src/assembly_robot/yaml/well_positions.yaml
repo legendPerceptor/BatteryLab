@@ -151,7 +151,7 @@ AnodeCase:
       cartesian: []
       joints: []
   top_right_box:
-    rail_pos: 0.0
+    rail_pos: -1
     top_left:
       cartesian: []
       joints: []

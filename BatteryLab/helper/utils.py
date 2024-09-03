@@ -176,7 +176,7 @@ AnodeCase:
     components = ["CathodeCase", "Cathode", "Separator", "Anode", "Washer", "Spacer", "AnodeCase"]
     constants.RobotPose = camera_manual_positions["RobotPose"]["cartesian"]
     for component in components:
-        setattr(camera_manual_positions, component, camera_manual_positions[component]["rail_pos"])
+        setattr(constants, component, camera_manual_positions[component]["rail_pos"])
     return constants
 
 def create_assembly_robot_constants_from_manual_positions(manual_positions) -> AssemblyRobotConstants:
@@ -287,6 +287,7 @@ Spacer:
     components = ["CathodeCase", "Cathode", "Separator", "Anode", "Washer", "Spacer", "AnodeCase"]
 
     for component_name in components:
+        print(f"Dealing with component <{component_name}>")
         if component_name not in manual_positions:
             print(f"The component <{component_name}> is not in the well positions YAML file")
             continue
@@ -295,17 +296,20 @@ Spacer:
         sub_locations = ["bottom_right_box", "bottom_left_box", "top_left_box", "top_right_box"]
         component_property_list = []
         for sub_location in sub_locations:
-            if component[rail_pos_prop] == -1: # ignore the sub locations that is not reachable
+            component_sub_loc = component[sub_location]
+            if component_sub_loc[rail_pos_prop] == -1: # ignore the sub locations that is not reachable
+                print(f"Ignoring the sublocation <{sub_location}> in component <{component_name}>")
                 continue
             component_property = ComponentProperty()
-            component_property.railPo = component[rail_pos_prop]
+            component_property.railPo = component_sub_loc[rail_pos_prop]
             component_property.dropPo = assemble_post[cartesian_coord_prop]
-            bottom_left_coordinates = component[sub_location][bottom_left_prop][cartesian_coord_prop]
-            bottom_right_coordinates = component[sub_location][bottom_right_prop][cartesian_coord_prop]
-            top_left_coordinates = component[sub_location][top_left_prop][cartesian_coord_prop]
-            top_right_coordinates = component[sub_location][top_right_prop][cartesian_coord_prop]
+            bottom_left_coordinates = component_sub_loc[bottom_left_prop][cartesian_coord_prop]
+            bottom_right_coordinates = component_sub_loc[bottom_right_prop][cartesian_coord_prop]
+            top_left_coordinates = component_sub_loc[top_left_prop][cartesian_coord_prop]
+            top_right_coordinates = component_sub_loc[top_right_prop][cartesian_coord_prop]
             component_property.grabPo = get_m_n_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left_coordinates, top_right_coordinates, 4, 4)
             component_property_list.append(component_property)
         setattr(constants, component_name, component_property_list)
+        print(f"Finished Dealing with component <{component_name}>")
 
     return constants
