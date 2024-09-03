@@ -58,7 +58,9 @@ class AssemblyRobot(Node):
     def take_a_look_up_photo(self):
         rail_pos = self.assemblyRobotConstants.LOOKUP_CAM_RAIL_LOCATION
         robot_pos = self.assemblyRobotConstants.LOOKUP_CAM_SK_PO
+        Trf = self.assemblyRobotConstants.TRF
         self.move_zaber_rail(rail_pos)
+        self.rail_meca500.robot.SetTrf(*Trf)
         self.rail_meca500.robot.MovePose(*robot_pos)
         self.rail_meca500.robot.WaitIdle()
         self.rail_meca500.robot.Delay(0.2)
@@ -71,7 +73,8 @@ class AssemblyRobot(Node):
         Trf = self.assemblyRobotCameraConstants.TRF
         robot_pos = self.assemblyRobotCameraConstants.RobotPose
         self.move_zaber_rail(rail_pos)
-        self.rail_meca500.robot.SetTrf(Trf)
+        self.rail_meca500.robot.SetTrf(*Trf)
+        print(f"To take a photo, moving to Robot Pos {robot_pos}")
         self.rail_meca500.robot.MovePose(*robot_pos)
         self.rail_meca500.robot.WaitIdle()
         self.rail_meca500.robot.Delay(0.2)
@@ -204,7 +207,7 @@ def main():
         except yaml.YAMLError as e:
             print("Cannot load the camera positions YAML file with error: ", e)
     assembly_robot_camera_constants = create_assembly_robot_camera_constants_from_manual_positions(camera_manual_positions=camera_constant_positions)
-
+    robot.assemblyRobotCameraConstants = assembly_robot_camera_constants
     prompt= """Press [Enter] to quit, [S] to test component suction,
 [M] to finish a cycle of assembly, [C] to take a photo of the desired tray,
 [L] to grab a component and move to the lookup camera for a picture.
