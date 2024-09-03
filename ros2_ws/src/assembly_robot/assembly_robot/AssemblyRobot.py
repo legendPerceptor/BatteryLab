@@ -65,6 +65,8 @@ class AssemblyRobot(Node):
         self.rail_meca500.robot.WaitIdle()
         self.rail_meca500.robot.Delay(0.2)
         # TODO: use get_image for storing the image or analysis
+        self.look_up_camera_client.send_request()
+        rclpy.spin_until_future_complete(self.look_up_camera_client, self.look_up_camera_client.future)
         self.look_up_camera_client.display_image()
         return self.look_up_camera_client.get_image()    
         
@@ -79,6 +81,8 @@ class AssemblyRobot(Node):
         self.rail_meca500.robot.WaitIdle()
         self.rail_meca500.robot.Delay(0.2)
         # TODO: use get_image for storing the image or analysis
+        self.arm_camera_client.send_request()
+        rclpy.spin_until_future_complete(self.arm_camera_client, self.arm_camera_client.future)
         self.arm_camera_client.display_image()
         return self.look_up_camera_client.get_image()
 
