@@ -181,7 +181,7 @@ class AssemblyRobot(Node):
             self.rail_meca500.robot.MoveLinRelWRF(0,0,30,0,0,0)
             self.rail_meca500.move_after_drop()
 
-        self.status["Progress"]["LastStep"] = AssemblySteps.Drop
+        # self.status["Progress"]["LastStep"] = AssemblySteps.Drop
         return True
 
 def main():
