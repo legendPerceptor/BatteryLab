@@ -12,13 +12,15 @@ from pathlib import Path
 from rclpy.node import Node
 import rclpy
 import time
+import cv2
+from datetime import datetime
 
 from ament_index_python.packages import get_package_share_path
 from camera_service.camera_client import ImageClient
 
 class AssemblyRobot(Node):
 
-    def __init__(self, logger = None, robot_address="192.168.0.100"):
+    def __init__(self, logger=None, robot_address="192.168.0.100"):
         super().__init__('assembly_robot')
         self.rail_meca500 = RailMeca500(logger=logger, robot_address=robot_address)
         # self.status = dict(Progress=dict(Initiate=0, LastStep=None), Meca500Ready=False, ZaberRailReady=False)
@@ -62,13 +64,14 @@ class AssemblyRobot(Node):
         self.move_zaber_rail(rail_pos)
         self.rail_meca500.robot.SetTrf(*Trf)
         self.rail_meca500.robot.MovePose(*robot_pos)
-        self.rail_meca500.robot.WaitIdle()
+        self.rail_meca500.robot.WaitIdle(30)
         self.rail_meca500.robot.Delay(0.2)
         # TODO: use get_image for storing the image or analysis
         self.look_up_camera_client.send_request()
         rclpy.spin_until_future_complete(self.look_up_camera_client, self.look_up_camera_client.future)
-        self.look_up_camera_client.display_image()
-        return self.look_up_camera_client.get_image()    
+        # self.look_up_camera_client.display_image()
+        image = self.look_up_camera_client.get_image()
+        return image     
         
     def take_a_tray_photo(self, component_name: str):
         rail_pos = getattr(self.assemblyRobotCameraConstants, component_name)
@@ -78,30 +81,25 @@ class AssemblyRobot(Node):
         self.rail_meca500.robot.SetTrf(*Trf)
         print(f"To take a photo, moving to Robot Pos {robot_pos}")
         self.rail_meca500.robot.MovePose(*robot_pos)
-        self.rail_meca500.robot.WaitIdle()
+        self.rail_meca500.robot.WaitIdle(30)
         self.rail_meca500.robot.Delay(0.2)
         # TODO: use get_image for storing the image or analysis
         self.arm_camera_client.send_request()
         rclpy.spin_until_future_complete(self.arm_camera_client, self.arm_camera_client.future)
-        self.arm_camera_client.display_image()
-        return self.look_up_camera_client.get_image()
+        # self.arm_camera_client.display_image()
+        return self.arm_camera_client.get_image()
 
     def grab_component(self, rail_position, grab_position, is_grab=True):
         """Grab a component for battery or return it to the tray.
         This requires a cooperation between the rail and the Meca500 robotic arm on top of it.
         """
-        self.move_zaber_rail(rail_position)
-        # Prepare proper tooling for grabbing components
-        # if abs(grab_position[0]) >= 160:
-        #     self.rail_meca500.change_tool(RobotTool.GRIPPER)
-        # else:
-        #     self.rail_meca500.change_tool(RobotTool.SUCTION)
-        # self.rail_meca500.change_tool(RobotTool.SUCTION)
-
         # Move home based on the tooling
+        self.rail_meca500.change_tool(tool_name=RobotTool.SUCTION)
         self.rail_meca500.move_home(tool=RobotTool.SUCTION)
-
-        self.logger.debug(f"Assembly Robot moved home and start picking soon.")
+        
+        # Move the Zaber Rail
+        self.move_zaber_rail(rail_position)
+        self.logger.debug(f"Assembly Robot will start picking soon.")
         # Let Meca500 pick up the component and move it home
         self.rail_meca500.pick_place(grab_position, is_grab=is_grab)
 
@@ -193,7 +191,8 @@ class AssemblyRobot(Node):
 
 def main():
     rclpy.init()
-    logger = Logger("assembly_robot_test", "/home/yuanjian/Research/BatteryLab/logs", "assembly_robot_test.log")
+    log_path = "/home/yuanjian/Research/BatteryLab/logs"
+    logger = Logger("assembly_robot_test", log_path, "assembly_robot_test.log")
     robot = AssemblyRobot(logger=logger, robot_address="192.168.0.100")
     position_file = Path(get_package_share_path("assembly_robot")) / "yaml" / "well_positions.yaml"
     with open(position_file, "r") as f:
@@ -218,7 +217,7 @@ def main():
 :> """
 
     component_prompt = """Which type of component do you want to test? Choose from the following
-["CathodeCase", "Cathode", "Separator", "Anode", "Spacer", "AnodeCase"]
+["CathodeCase", "Cathode", "Separator", "Anode", "Washer", "Spacer", "AnodeCase"]
 :> """
     
     while True:
@@ -228,29 +227,45 @@ def main():
         elif input_str == 'S':
             component_name = input(component_prompt)
             component = getattr(assembly_robot_constants, component_name)
+            if len(component) == 0:
+                print(f"The selected component <{component_name}> has not been manually positioned yet!")
+                continue
             grabpos = component[0].grabPo
-            railpos = component[0].railPo
+            railpos = component[0].railPo + 0.3 # For a small offset error after manual positioning.
             for i in range(0, len(grabpos), 4):
                 print(f"reaching the position of well {i}: {grabpos[i]}")
                 robot.grab_component(railpos, grabpos[i], is_grab=True)
                 robot.grab_component(railpos, grabpos[i], is_grab=False)
         elif input_str == 'C':
             component_name = input(component_prompt)
-            robot.take_a_tray_photo(component_name)
+            image = robot.take_a_tray_photo(component_name)
+            cur_time = datetime.now().strftime("%Y-%m-%d-%H-%M:%S")
+            image_file = str(Path(log_path) / f"ArmCam-{component_name}-{cur_time}.jpg")
+            cv2.imwrite(image_file, image)
         elif input_str == 'M':
             component_name = input(component_prompt)
             component = getattr(assembly_robot_constants, component_name)
+            if len(component) == 0:
+                print(f"The selected component <{component_name}> has not been manually positioned yet!")
+                continue
             grabpos = component[0].grabPo
-            railpos = component[0].railPo
+            railpos = component[0].railPo + 0.3 # The small offset error should not exist.
             robot.grab_component(railpos, grabpos[0], is_grab=True)
             robot.grab_component(assembly_robot_constants.POST_RAIL_LOCATION, assembly_robot_constants.POST_C_SK_PO, is_grab=False)
         elif input_str == 'L':
             component_name = input(component_prompt)
             component = getattr(assembly_robot_constants, component_name)
+            if len(component) == 0:
+                print(f"The selected component <{component_name}> has not been manually positioned yet!")
+                continue
             grabpos = component[0].grabPo
-            railpos = component[0].railPo
+            railpos = component[0].railPo + 0.3 # The small offset error should not exist.
             robot.grab_component(railpos, grabpos[0], is_grab=True)
             image = robot.take_a_look_up_photo()
+            cur_time = datetime.now().strftime("$Y-%m-%d-%H-%M:%S")
+            image_file = str(Path(log_path) / f"Lookup-{component_name}-{cur_time}.jpg")
+            cv2.imwrite(image_file, image)
+            robot.rail_meca500.move_home(tool=RobotTool.SUCTION)
             robot.grab_component(railpos, grabpos[0], is_grab=False)
 
     robot.destroy_node()

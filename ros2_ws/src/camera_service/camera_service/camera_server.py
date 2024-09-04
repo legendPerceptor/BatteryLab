@@ -16,7 +16,7 @@ class CameraService(Node):
         self.get_logger().info("The camera server is ready accept requests...")
 
     def capture_image_callback(self, request, response):
-        for i in range(5):
+        for i in range(10):
             self.cap.read()
         ret, frame = self.cap.read()
         if ret:

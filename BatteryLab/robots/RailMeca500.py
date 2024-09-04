@@ -12,6 +12,10 @@ class RailMeca500(Meca500):
         super().__init__(logger, log_path, logger_filename, robot_address, robot_constants_config_file)
         self.status = {}
         self.suction_pump = SuctionPump(self.logger, self.status, vacuum_port=get_proper_port_for_device(SupportedDevices.SuctionPump))
+        ok = self.suction_pump.connect_pump()
+        if not ok:
+            self.logger.error("Cannot connecto to the suction pump!")
+            print("Cannot connect to the suction pump!")
         self.tool = RobotTool.SUCTION
 
     def change_tool(self, tool_name: RobotTool):
@@ -45,7 +49,7 @@ class RailMeca500(Meca500):
     def pick_place(self, grab_pos, is_grab = True):
         self.logger.info(f"Starting picking component at {grab_pos}")
         self.robot.SetJointVel(self.RobotConstants.J_VEL)
-        self.robot.MovePose(grab_pos[0], grab_pos[1], grab_pos[2] + 20, grab_pos[3], grab_pos[4], grab_pos[5])
+        self.robot.MovePose(grab_pos[0], grab_pos[1], grab_pos[2] + 30, grab_pos[3], grab_pos[4], grab_pos[5])
         # Linearly moving down to grab the component and go back
         self.robot.Delay(0.5)
         self.robot.SetCartLinVel(self.RobotConstants.L_VEL)
@@ -56,11 +60,11 @@ class RailMeca500(Meca500):
         else:
             self.smart_drop()
         self.robot.Delay(0.2)
-        self.robot.MoveLin(grab_pos[0], grab_pos[1], grab_pos[2], grab_pos[3], grab_pos[4], grab_pos[5])
+        self.robot.MoveLin(grab_pos[0], grab_pos[1], grab_pos[2] + 30, grab_pos[3], grab_pos[4], grab_pos[5])
         self.robot.Delay(0.5)
         # Move the component back to home
         self.robot.SetCartLinVel(self.RobotConstants.L_VEL)
-        self.move_home()
+        self.move_home(tool=RobotTool.SUCTION)
         self.robot.WaitIdle()
 
 def rail_meca500_example_app():

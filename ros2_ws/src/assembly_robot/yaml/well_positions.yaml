@@ -8,7 +8,7 @@ LookupCamera:
   rail_pos: 105.0
   cartesian: [-222.98894, -102.23394, 122.5639, 179.99999, 0, -22.02105]
   joints: [-158.25595, 20.22285, -0.07483, 0.46605, 24.85303, -0.61875]
-Spacer:
+Cathode:
   bottom_right_box:
     rail_pos: 0.0
     top_left:
