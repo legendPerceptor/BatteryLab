@@ -56,6 +56,21 @@ class AssemblyRobotCameraConstants():
         self.Washer: float = 0.0
         self.CathodeCase: float = 0.0
 
+class CrimperRobotConstants(BaseModel):
+        TRF : List[float] = [20, 0, 95,  0,  0,  0]
+        Home : List[float] = [-45, 0, 0, 0, 45, 0]
+        PostReadyPose: List[float] = [-26.08631, 332.29777, 100, -90.00002, 0, 90]
+        PostDownPose: List[float] = [-26.08631, 332.29776, 70.09248, -90.00002, 0, 90]
+        GrabReadyPose: List[float] = [-26.08631, 322.62557, 70.09251, -90.00002, 0, 90]
+        GrabbedUpPose: List[float] = [-26.08631, 322.62556, 93.28549, -90.00002, 0, 90]
+        CrimperReadyToOperatePose: List[float] = [1.40814, -193.09457, 340.27525, 90, 0, -90]
+        CrimperDropPose: List[float] = [1.40814, -281.92951, 340.27525, 90, 0, -90]
+        CrimperReadyToPickPose: List[float] = [1.40817, -292.28907, 339.06158, 90, 0, -90]
+        CrimperPickPressPose: List[float] = [1.40817, -292.28907, 333.83704, 90, 0, -90]
+        CrimperPickPose: List[float] = [1.40814, -281.92949, 331.8871, 90, 0, -90]
+        CrimperPickedUpPose: List[float] = [1.40814, -281.92949, 338.49117, 90, 0, -90]
+        StorageReadyPose: List[float] = [-88.25037, 258.84746, 138.26627, -90, -0.00001, 90]
+        StorageDropPose: List[float] = [-88.25037, 258.84746, 105.13378, -90, -0.00002, 90]
 
 class AssemblyRobotConstants():
     def __init__(self):
