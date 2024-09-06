@@ -5,6 +5,7 @@ from BatteryLab.robots.Constants import RobotTool
 import rclpy
 from rclpy.node import Node
 from camera_service.camera_client import ImageClient
+import cv2
 
 class CrimperRobot(Node):
 

@@ -10,7 +10,7 @@ class BreadBoardMeca500(Meca500):
                  crimper_robot_constants_config_file=Path(__file__).parent.parent / "configs" / "CrimperPositions.yaml"):
         super().__init__(logger, log_path, logger_filename, robot_address, robot_constants_config_file)
         try:
-            with open(robot_constants_config_file, 'r') as file:
+            with open(crimper_robot_constants_config_file, 'r') as file:
                 yaml_data = yaml.safe_load(file)
                 self.crimperRobotConstants = CrimperRobotConstants(**yaml_data)
         except Exception as e:

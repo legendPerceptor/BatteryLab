@@ -40,7 +40,7 @@ class ImageClient(Node):
         current_frame = self.get_image()
         if current_frame is not None:
             cv2.imshow("camera", current_frame)
-            cv2.waitKey(0)        
+            cv2.waitKey(5)        
         self.get_logger().info("finished executing display image")
 
 def main(args=None):
