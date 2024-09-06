@@ -83,6 +83,20 @@ class BreadBoardMeca500(Meca500):
         self.robot.WaitGripperMoveCompletion(5)
         self.robot.Delay(0.5)
         self.move_home(tool=RobotTool.SUCTION)
+    
+    def move_for_photo_check(self):
+        self.robot.SetTrf(*self.crimperRobotConstants.TRF)
+        self.robot.MovePose(*self.crimperRobotConstants.PhotoCheckPreparePose)
+        self.robot.WaitIdle(20)
+        self.robot.SetCartLinVel(30)
+        self.robot.MoveLin(*self.crimperRobotConstants.PhotoCheckPose)
+        self.robot.WaitIdle(20)
+
+    def move_away_from_photo_check(self):
+        self.robot.SetTrf(*self.crimperRobotConstants.TRF)
+        self.robot.MovePose(*self.crimperRobotConstants.PhotoCheckPreparePose)
+        self.robot.WaitIdle(20)
+        self.move_home(tool=RobotTool.SUCTION)
 
 
 def breadboard_meca500_example_app():

@@ -63,6 +63,8 @@ class CrimperRobotConstants(BaseModel):
         PostDownPose: List[float] = [-26.08631, 332.29776, 70.09248, -90.00002, 0, 90]
         GrabReadyPose: List[float] = [-26.08631, 322.62557, 70.09251, -90.00002, 0, 90]
         GrabbedUpPose: List[float] = [-26.08631, 322.62556, 93.28549, -90.00002, 0, 90]
+        PhotoCheckPreparePose: List[float] = [213.81964, 69.62883, 148.54655, 0, 90, 0]
+        PhotoCheckPose: List[float] = [261.2986, 69.62884, 148.54655, 0, 90, 0]
         CrimperReadyToOperatePose: List[float] = [1.40814, -193.09457, 340.27525, 90, 0, -90]
         CrimperDropPose: List[float] = [1.40814, -281.92951, 340.27525, 90, 0, -90]
         CrimperReadyToPickPose: List[float] = [1.40817, -292.28907, 339.06158, 90, 0, -90]
