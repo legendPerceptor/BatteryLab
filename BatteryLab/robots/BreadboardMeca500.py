@@ -20,14 +20,18 @@ class BreadBoardMeca500(Meca500):
     
     def pick_up_from_assembly_post(self):
         self.robot.SetTrf(*self.crimperRobotConstants.TRF)
+        self.move_home(tool=RobotTool.SUCTION)
+        self.robot.GripperOpen()
+        self.robot.WaitGripperMoveCompletion(5)
         self.robot.MovePose(*self.crimperRobotConstants.PostReadyPose)
         self.robot.WaitIdle(30)
-        self.robot.SetCartLinVel(30)
+        self.robot.SetCartLinVel(20)
         self.robot.MoveLin(*self.crimperRobotConstants.PostDownPose)
         self.robot.Delay(0.5)
         self.robot.MoveLin(*self.crimperRobotConstants.GrabReadyPose)
         self.robot.Delay(0.5)
         self.robot.GripperClose()
+        self.robot.WaitGripperMoveCompletion(5)
         self.robot.Delay(0.5)
         self.robot.MoveLin(*self.crimperRobotConstants.GrabbedUpPose)
         self.robot.Delay(0.5)
@@ -38,28 +42,32 @@ class BreadBoardMeca500(Meca500):
         self.robot.SetTrf(*self.crimperRobotConstants.TRF)
         self.robot.MovePose(*self.crimperRobotConstants.CrimperReadyToOperatePose)
         self.robot.WaitIdle(30)
-        self.robot.SetCartLinVel(10)
+        self.robot.SetCartLinVel(20)
         self.robot.MoveLin(*self.crimperRobotConstants.CrimperDropPose)
-        self.robot.Delay(0.5)
+        self.robot.WaitIdle(30)
         self.robot.GripperOpen()
+        self.robot.WaitGripperMoveCompletion(5)
         self.robot.Delay(1)
         self.robot.MoveLin(*self.crimperRobotConstants.CrimperReadyToOperatePose)
         self.robot.WaitIdle(20)
 
     def pick_up_from_crimper(self):
         self.robot.SetTrf(*self.crimperRobotConstants.TRF)
+        self.robot.GripperOpen()
+        self.robot.WaitGripperMoveCompletion(5)
         self.robot.MovePose(*self.crimperRobotConstants.CrimperReadyToOperatePose)
-        self.robot.WaitIdle(30)
+        self.robot.WaitIdle(20)
         self.robot.SetCartLinVel(20)
         self.robot.MoveLin(*self.crimperRobotConstants.CrimperReadyToPickPose)
-        self.robot.Delay(0.5)
+        self.robot.WaitIdle(20)
         self.robot.MoveLin(*self.crimperRobotConstants.CrimperPickPressPose)
-        self.robot.Delay(0.5)
+        self.robot.WaitIdle(20)
         self.robot.MoveLin(*self.crimperRobotConstants.CrimperPickPose)
-        self.robot.Delay(0.5)
+        self.robot.WaitIdle(20)
         self.robot.GripperClose()
+        self.robot.WaitGripperMoveCompletion(5)
         self.robot.MoveLin(*self.crimperRobotConstants.CrimperPickedUpPose)
-        self.robot.Delay(0.5)
+        self.robot.WaitIdle(10)
         self.robot.MoveLin(*self.crimperRobotConstants.CrimperReadyToOperatePose)
         self.robot.WaitIdle(10)
         self.move_home(tool=RobotTool.SUCTION)
@@ -70,9 +78,11 @@ class BreadBoardMeca500(Meca500):
         self.robot.WaitIdle(20)
         self.robot.SetCartLinVel(20)
         self.robot.MoveLin(*self.crimperRobotConstants.StorageDropPose)
+        self.robot.WaitIdle(20)
         self.robot.GripperOpen()
+        self.robot.WaitGripperMoveCompletion(5)
         self.robot.Delay(0.5)
-        self.move_home(tool=RobotTool.GRIPPER)
+        self.move_home(tool=RobotTool.SUCTION)
 
 
 def breadboard_meca500_example_app():
@@ -82,6 +92,31 @@ def breadboard_meca500_example_app():
         robot_address = user_provided_address
     meca500_robot = BreadBoardMeca500(robot_address=robot_address)
     meca500_robot.initializeRobot()
-    meca500_robot.draw_square()
+    
+    prompt= """Press [Enter] to quit, [P] to pick up from the post,
+[C] to drop the battery to the crimper, [D] to pick the battery up from the crimper
+[S] to store the battery in the storage post. [A] to run the whole process
+:> """
+
+    while True:
+        input_str = input(prompt).strip().upper()
+        if input_str == '':
+            break
+        elif input_str == 'P':
+            meca500_robot.pick_up_from_assembly_post()
+        elif input_str == 'C':
+            meca500_robot.drop_to_crimper()
+        elif input_str == 'D':
+            meca500_robot.pick_up_from_crimper()
+        elif input_str == 'S':
+            meca500_robot.put_to_storage()
+        elif input_str == 'A':
+            meca500_robot.pick_up_from_assembly_post()
+            meca500_robot.drop_to_crimper()
+            meca500_robot.pick_up_from_crimper()
+            meca500_robot.put_to_storage()
+        else:
+            print("The command you gave is not recognized!")
+    
     meca500_robot.move_home(tool=RobotTool.GRIPPER)
     meca500_robot.exitRobot()
