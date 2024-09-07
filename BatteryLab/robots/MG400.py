@@ -6,6 +6,7 @@ from ..helper.utils import get_m_n_well_pos
 import yaml
 from pathlib import Path
 from typing import List
+import time
 
 class MG400():
     def __init__(self, logger = None, log_path="logs", logger_filename="MG400.log",
@@ -21,7 +22,7 @@ class MG400():
         self.feed = None
         self.sartorius_rline = SartoriusRLine(port=get_proper_port_for_device(SupportedDevices.SartoriusRLine), logger=self.logger)
         self.position_file = mg400_position_file
-        self.home :List[float]= [0, 0, 0, 0]
+        self.home :List[float]= [90, 0, 0, 0]
         self.well_poses: List[List[float]] = []
     
     def intialize_robot(self) -> bool:
@@ -33,11 +34,11 @@ class MG400():
             self.logger.error("Cannot connect to the MG400, error: ", e)
             return False
         
-        try:
-            self.parse_position_file()
-        except Exception as e:
-            self.logger.error("Failed to load the config file for MG400, error:", e)
-            return False
+        # try:
+        #     self.parse_position_file()
+        # except Exception as e:
+        #     self.logger.error("Failed to load the config file for MG400, error:", e)
+        #     return False
         self.dashboard.EnableRobot()
         return True
 
@@ -80,12 +81,8 @@ class MG400():
         self.well_poses = get_m_n_well_pos(tipcase["bottom_left"]["cartesian"],
                          tipcase["bottom_right"]["cartesian"], tipcase["top_left"]["cartesian"], tipcase["top_right"]["cartesian"], m, n)
 
-def mg400_example():
-    mg400 = MG400(ip="192.168.0.107")
-    ok = mg400.intialize_robot()
-    if not ok:
-        print("Failed to initialize MG400, program aborted!")
-        exit()
+
+def main_loop(mg400):
     try:
         while True:
             input_str = input("Press [Enter] to quit, [0] to home the robot, [M] to drive to tip case: ").strip().lower()
@@ -94,8 +91,8 @@ def mg400_example():
             elif input_str == '0':
                 mg400.move_home()
             elif input_str == 'm':
-                x = int(input("Please input tip location x:").strip())
-                y = int(input("Please input tip location y:").strip())
+                x = int(input("Please input tip index x:").strip())
+                y = int(input("Please input tip index y:").strip())
                 mg400.move_to_tip_case(x, y)
             else:
                 print("Invalid input. Please enter a valid option.")
@@ -104,3 +101,33 @@ def mg400_example():
     finally:
         mg400.disconnect()
         print("MG400 disconnected safely.")
+
+def mg400_example():
+    mg400 = MG400(ip="192.168.0.107")
+    ok = mg400.intialize_robot()
+    if not ok:
+        print("Failed to initialize MG400, program aborted!")
+        exit()
+    mg400.move_home()
+    mg400.dashboard.Tool(index=0)
+    mg400.dashboard.SpeedJ(10)
+    mg400.dashboard.SpeedL(10)
+    up_position = [19.88, 282.44, -60.68, 35.36]
+    mg400.movectl.MovJ(*up_position)
+    time.sleep(2)
+    down_position = [19.88, 282.44, -76.88, 35.36]
+    mg400.dashboard.SpeedL(3)
+    mg400.movectl.MovL(*down_position)
+    time.sleep(5)
+    tip_up_position = [19.88, 282.44, -14.28, 35.36]
+    mg400.movectl.MovL(*tip_up_position)
+    prepare_drain_liquid_position = [6.98, 393.24, -20.28, 35.36]
+    mg400.movectl.MovJ(*prepare_drain_liquid_position)
+    time.sleep(3)
+    mg400.dashboard.SpeedL(3)
+    drain_liquid_position = [6.98, 393.24, -72.01, 35.36]
+    mg400.movectl.MovL(*drain_liquid_position)
+    time.sleep(5)
+    mg400.movectl.MovL(*prepare_drain_liquid_position)
+    # put the tip back
+    mg400.movectl.MovJ(*tip_up_position)

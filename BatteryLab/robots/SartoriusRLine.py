@@ -98,12 +98,12 @@ class SartoriusRLine():
             self.parseError(answer)
             return (False, len(answer))
         
-    def readFeeback(self):
-        content = self.serial.read_util(b'\r')
+    def readFeedback(self):
+        content = self.serial.read_until(b'\r')
         return content
 
     def check_connection(self):
-        return self.serial.is_open()
+        return self.serial.isOpen()
     
     def sendCmd(self, cmd, pos = 1):
         if cmd in REGULAR_COMMANDS.keys():
@@ -143,16 +143,16 @@ class SartoriusRLine():
         con_res = self.check_connection()
         if not con_res:
             self.serial.open()
+            con_res = self.check_connection()
         time.sleep(0.2)
         home_res = self.sendCmd("RESET")
-        print("feedback:", self.readFeedback())
         time.sleep(5)
         speed1_res = self.sendCmd("INWARD_SPEED_3")
-        print("feedback:", self.readFeedback())
         time.sleep(1)
         speed2_res = self.sendCmd("OUTWARD_SPEED_3")
-        print("feedback:", self.readFeedback())
-        return all([con_res, home_res[0], speed1_res[0], speed2_res[0]])
+        response_list = [con_res, home_res[0], speed1_res[0], speed2_res[0]]
+        print(response_list)
+        return all(response_list)
     
     def aspirate(self, volume):
         return self.sendCmd("RUN_INWARDS", round(volume))
@@ -187,10 +187,10 @@ def sartorius_example_app():
         exit()
     try:
         while True:
-            input_str = input("Press [Enter] to quit, [P] to pick up pipette, [E] to eject pipette,\n[A] to aspirate liquid, [D] to dispense liquid").strip().lower()
+            input_str = input("Press [Enter] to quit, [B] to blow out all liquid, [E] to eject pipette,\n[A] to aspirate liquid, [D] to dispense liquid:").strip().upper()
             if input_str == '':
                 break
-            elif input_str == 'P':
+            elif input_str == 'B':
                 sartorius_rline.blowout()
             elif input_str == 'E':
                 sartorius_rline.eject_and_home()

@@ -1,18 +1,22 @@
 TipCase:
   m: 8
-  n: 12 
+  n: 12
+  tool_index: 1
   bottom_right:
-    cartesian: [71.736, 331.11, -71.51, 100.47]
-    joints: []
+    down: [71.736, 331.11, -71.51, 100.47]
+    up: []
   bottom_left:
-    cartesian: [71.736, 266.95, -71.51, 100.47]
-    joints: []
+    down: [55.238, 315.50, -71.62, 35.360]
+    up: [55.238, 315.50, -51.62, 35.360]
   top_left:
     cartesian: [-26.75, 268.15, -71.51, 100.47]
     joints: []
   top_right:
     cartesian: [-26.75, 331.52, -71.51, 100.47]
     joints: []
+TRF:
+  index: 1
+  cartesian: [49.980, 6.471, 0.0, 0.0]
 Home: 
   cartesian: [0, 300, 112, 90]
   joints: [90, 0, 0, 0]
