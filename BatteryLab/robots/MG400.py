@@ -112,8 +112,10 @@ def mg400_example():
     mg400.dashboard.Tool(index=0)
     mg400.dashboard.SpeedJ(10)
     mg400.dashboard.SpeedL(10)
+    up_high_position = [19.88, 282.44, 0.68, 35.36]
+    mg400.movectl.MovL(*up_high_position)
     up_position = [19.88, 282.44, -60.68, 35.36]
-    mg400.movectl.MovJ(*up_position)
+    mg400.movectl.MovL(*up_position)
     time.sleep(2)
     down_position = [19.88, 282.44, -76.88, 35.36]
     mg400.dashboard.SpeedL(3)
@@ -130,4 +132,5 @@ def mg400_example():
     time.sleep(5)
     mg400.movectl.MovL(*prepare_drain_liquid_position)
     # put the tip back
-    mg400.movectl.MovJ(*tip_up_position)
+    assembly_prepare_location = [8.67, -351.02, 58.73, -90.04]
+    mg400.movectl.MovJ(*assembly_prepare_location)
