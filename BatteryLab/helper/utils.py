@@ -62,13 +62,13 @@ def get_proper_port_for_device(device_name: SupportedDevices):
     print("selected port: ", selected_port)
     return selected_port
 
-def draw_calculated_points(pos_list, m, n):
+def draw_calculated_points(pos_list, m, n, file_name:str = "generated_points"):
     x_coords = []
     y_coords = []
     manual_x_coords = []
     manual_y_coords = []
     offset = 0.04
-    plt.figure(figsize=(m, n))
+    plt.figure(figsize=(n, m))
     for i in range(m * n):
         x = int(i // n)
         y = int(i % n)
@@ -81,29 +81,29 @@ def draw_calculated_points(pos_list, m, n):
             plt.text(pos_list[i][0] + offset, pos_list[i][1] + offset, str(i), fontsize=8, color='blue')
             x_coords.append(pos_list[i][0])
             y_coords.append(pos_list[i][1])
-    plt.scatter(x_coords, y_coords, color='blue', s=14)  # Plot the points
-    plt.scatter(manual_x_coords, manual_y_coords, color='red', s=14)
+    plt.scatter(y_coords, x_coords, color='blue', s=14)  # Plot the points
+    plt.scatter(manual_y_coords,manual_x_coords, color='red', s=14)
     for i in range(4):
         if i == 0 or i == 2:
             points_x = [manual_x_coords[i], manual_x_coords[(i+1) % 4]]
             points_y = [manual_y_coords[i], manual_y_coords[(i+1) % 4]]
-            plt.plot(points_x, points_y, color='r', linewidth=1)
+            plt.plot(points_y,points_x, color='r', linewidth=1)
         if i == 0 or i == 1:
             points_x = [manual_x_coords[i], manual_x_coords[(i+2) % 4]]
             points_y = [manual_y_coords[i], manual_y_coords[(i+2) % 4]]
-            plt.plot(points_x, points_y, color='r', linewidth=1)
+            plt.plot(points_y,points_x, color='r', linewidth=1)
 
     # Add labels and title
-    plt.xlabel('X-axis')
-    plt.ylabel('Y-axis')
-    plt.title('Scatter Plot of Points')
+    plt.xlabel('Y-axis')
+    plt.ylabel('X-axis')
+    plt.title(file_name)
     # Display the grid and axes
     plt.grid(True)
-    project_dir = "/home/yuanjian/Research/BatteryLab/logs/"
-    os.makedirs(project_dir, exist_ok=True)
-    plt.savefig(project_dir + 'generated_points.png')
+    project_dir = Path(__file__).parent.parent.parent / "images"
+    os.makedirs(str(project_dir), exist_ok=True)
+    plt.savefig(str(project_dir / (file_name + ".png")))
 
-def get_m_n_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left_coordinates, top_right_coordinates, m, n):
+def get_m_n_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left_coordinates, top_right_coordinates, m, n, name:str="default"):
     avg_height = np.average([bottom_left_coordinates[2], bottom_right_coordinates[2], top_left_coordinates[2], top_right_coordinates[2]])
     # pos_dict: dict[int, List[float]] = {}
     # delta_y = np.average([bottom_right_coordinates[1] - bottom_left_coordinates[1], top_right_coordinates[1] - top_left_coordinates[1]]) / (m-1)
@@ -135,7 +135,7 @@ def get_m_n_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left
         else:
             # pos_dict[i] = [float(top_left_coordinates[0] + x * delta_x), float(top_left_coordinates[1] + y * delta_y), float(avg_height)] + bottom_left_coordinates[3:]
             pos_list.append([grid_x[x, y], grid_y[x, y], avg_height] + bottom_left_coordinates[3:])
-    draw_calculated_points(pos_list, m, n)
+    draw_calculated_points(pos_list, m, n, name)
     return pos_list
 
 def create_assembly_robot_camera_constants_from_manual_positions(camera_manual_positions) -> AssemblyRobotCameraConstants:

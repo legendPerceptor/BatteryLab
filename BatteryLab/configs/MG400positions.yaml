@@ -1,6 +1,6 @@
 TipCase:
-  m: 8
-  n: 12
+  m: 12
+  n: 8
   tool_index: 0
   bottom_right:
     down: [19.88, 346.34, -76.88, 35.36]
@@ -19,7 +19,7 @@ AssemblyPost:
   drop_location: [8.67, -351.02, 25.73, -90.04]
 Liquid:
   m: 4
-  n: 4
+  n: 3
   tool_index: 0
   bottom_right:
     down: [6.98, 440.79, -72.01, 35.36]

@@ -10,7 +10,7 @@ import time
 
 class MG400():
     def __init__(self, logger = None, log_path="logs", logger_filename="MG400.log",
-                 ip="192.168.0.107", dashboardPort=29999, movePort=30003, feedPort=30004,
+                 ip="192.168.0.107", dashboardPort=29999, movePort=30003, feedPort=30004, sartorius_rline = None,
                  mg400_position_file = Path(__file__).parent.parent / "configs" / "MG400positions.yaml"):
         self.ip = ip
         self.dashboardPort = dashboardPort
@@ -20,10 +20,15 @@ class MG400():
         self.dashboard = None
         self.movectl = None
         self.feed = None
-        self.sartorius_rline = SartoriusRLine(port=get_proper_port_for_device(SupportedDevices.SartoriusRLine), logger=self.logger)
+        self.sartorius_rline = sartorius_rline if sartorius_rline is not None else SartoriusRLine(port=get_proper_port_for_device(SupportedDevices.SartoriusRLine), logger=self.logger)
         self.position_file = mg400_position_file
         self.home :List[float]= [90, 0, 0, 0]
-        self.well_poses: List[List[float]] = []
+        self.tip_poses_up: List[List[float]] = []
+        self.tip_poses_down: List[List[float]] = []
+        self.liquid_poses_up: List[List[float]] = []
+        self.liquid_poses_down: List[List[float]] = []
+        self.assembly_pose_down: List[float] = []
+        self.assembly_pose_up: List[float] = []
     
     def intialize_robot(self) -> bool:
         try:
@@ -34,11 +39,11 @@ class MG400():
             self.logger.error("Cannot connect to the MG400, error: ", e)
             return False
         
-        # try:
-        #     self.parse_position_file()
-        # except Exception as e:
-        #     self.logger.error("Failed to load the config file for MG400, error:", e)
-        #     return False
+        try:
+            self.parse_position_file()
+        except Exception as e:
+            self.logger.error("Failed to load the config file for MG400, error:", e)
+            return False
         self.dashboard.EnableRobot()
         return True
 
@@ -49,51 +54,131 @@ class MG400():
         self.movectl.JointMovJ(*self.home)
 
     def move_to_tip_case(self, x, y):
-        down_pos = self.well_poses[x][y]
-        upper_pos = [down_pos[0], down_pos[1], down_pos[2] + 30, down_pos[3]]
-        self.movectl.MovJ(*upper_pos)
-        self.movectl.wait_reply()
-        self.movectl.MovL(*down_pos)
-        self.movectl.wait_reply()
-        self.movectl.MovL(*upper_pos)
-        self.movectl.wait_reply()
+        self.dashboard.Tool(index=0)
+        self.dashboard.SpeedJ(10)
+        up_pos = self.tip_poses_up[x][y]
+        self.movectl.MovJ(*up_pos)
         self.logger.info(f"finished moving to tipcase at ({x}, {y}).")
 
-    def get_tip(self):
-        pass
+    def get_tip(self, x, y):
+        self.move_to_tip_case(x, y)
+        self.dashboard.SpeedL(3)
+        self.movectl.MovL(*self.tip_poses_down[x][y])
+        time.sleep(5)
+        self.movectl.MovL(*self.tip_poses_up[x][y])
+        self.logger.info(f"finished getting the tip at ({x}, {y}).")
 
-    def drop_tip(self):
-        pass
+    def drop_tip(self, x, y):
+        self.move_to_tip_case(x, y)
+        self.sartorius_rline.eject_and_home()
+        self.logger.info(f"The tip should have been ejected")
 
     def move_to_assemble_post(self):
-        pass
+        self.dashboard.SpeedJ(10)
+        self.movectl.JointMovJ(*self.assembly_pose_up)
 
-    def add_electrolyte(self, quantity):
-        pass
+    def move_to_liquid(self, x, y):
+        self.dashboard.Tool(index=0)
+        self.dashboard.SpeedJ(10)
+        self.movectl.MovJ(*self.liquid_poses_up[x][y])
+        self.logger.info(f"finished moving for liquid bottle ({x}, {y}).")
+
+    def get_liquid(self, x, y, volume):
+        self.move_to_liquid(x, y)
+        self.dashboard.SpeedL(3)
+        self.movectl.MovL(*self.liquid_poses_down[x][y])
+        time.sleep(3)
+        # TODO: level sensing and ensure the liquid is enough
+        self.logger.info(f"The current liquid level: {self.sartorius_rline.tellLevel()}")
+        self.sartorius_rline.aspirate(volume)
+        time.sleep(3)
+        self.movectl.MovL(*self.liquid_poses_up[x][y])
+        time.sleep(3)
+
+    def return_liquid(self, x, y):
+        self.move_to_liquid(x, y)
+        self.dashboard.SpeedL(3)
+        self.movectl.MovL(*self.liquid_poses_down[x][y])
+        time.sleep(3)
+        self.sartorius_rline.blowout()
+
+    def add_liquid_to_post(self, volume):
+        self.move_to_assemble_post()
+        self.dashboard.SpeedL(3)
+        self.movectl.MovL(*self.assembly_pose_down)
+        self.sartorius_rline.dispense(volume)
+        time.sleep(5)
+        self.movectl.MovL(*self.assembly_pose_up)
 
     def parse_position_file(self):
         with open(self.position_file) as f:
             config = yaml.safe_load(f)
-        self.home = config["Home"]["joints"]
+        self.home = config["Home"]
         tipcase = config["TipCase"]
         m = int(tipcase["m"])
         n = int(tipcase["n"])
-        self.well_poses = get_m_n_well_pos(tipcase["bottom_left"]["cartesian"],
-                         tipcase["bottom_right"]["cartesian"], tipcase["top_left"]["cartesian"], tipcase["top_right"]["cartesian"], m, n)
 
+        self.tip_poses_down = get_m_n_well_pos(tipcase["bottom_left"]["down"],
+                         tipcase["bottom_right"]["down"],
+                         tipcase["top_left"]["down"],
+                         tipcase["top_right"]["down"], m, n, "mg400-tip-pose-up")
+        self.tip_poses_up = get_m_n_well_pos(tipcase["bottom_left"]["up"],
+                         tipcase["bottom_right"]["up"],
+                         tipcase["top_left"]["up"],
+                         tipcase["top_right"]["up"], m, n, "mg400-tip-pose-down")
+        
+        liquid = config["Liquid"]
+        m = int(liquid["m"])
+        n = int(liquid["n"])
+        self.liquid_poses_down = get_m_n_well_pos(liquid["bottom_left"]["down"],
+                         liquid["bottom_right"]["down"],
+                         liquid["top_left"]["down"],
+                         liquid["top_right"]["down"], m, n, "mg400-liquid-pose-down")
+        self.liquid_poses_up = get_m_n_well_pos(liquid["bottom_left"]["up"],
+                         liquid["bottom_right"]["up"],
+                         liquid["top_left"]["up"],
+                         liquid["top_right"]["up"], m, n, "mg400-liquid-pose-up")
+        
+        self.assembly_pose_up = config["AssemblyPost"]["prepare_location"]
+        self.assembly_pose_down = config["AssemblyPost"]["drop_location"]
 
-def main_loop(mg400):
+def main_loop(mg400:MG400):
+    prompt="""Press [Enter] to quit, [0] to home the robot, [M] to drive to tip case,
+[G] to get tip at tipcase(x,y), [A] to aspirate liquid with volume, [D] to return tip to tipcase (x,y),
+[R] to return liquid to liquidcase(x,y), [J] to dispense liquid with volume to the post.
+:> 
+"""
     try:
         while True:
-            input_str = input("Press [Enter] to quit, [0] to home the robot, [M] to drive to tip case: ").strip().lower()
+            input_str = input(prompt).strip().upper()
             if input_str == '':
                 break
             elif input_str == '0':
                 mg400.move_home()
-            elif input_str == 'm':
+            elif input_str == 'M':
                 x = int(input("Please input tip index x:").strip())
                 y = int(input("Please input tip index y:").strip())
-                mg400.move_to_tip_case(x, y)
+                mg400.move_to_tip_case(x, y) 
+            elif input_str == 'G':
+                x = int(input("Please input tip index x:").strip())
+                y = int(input("Please input tip index y:").strip())
+                mg400.get_tip(x, y)
+            elif input_str == 'D':
+                x = int(input("Please input tip index x:").strip())
+                y = int(input("Please input tip index y:").strip())
+                mg400.drop_tip(x, y)
+            elif input_str == 'R':
+                x = int(input("Please input tip index x:").strip())
+                y = int(input("Please input tip index y:").strip())
+                mg400.return_liquid(x, y)
+            elif input_str == 'J':
+                volume = int(input("Please input volume:").strip())
+                mg400.add_liquid_to_post(volume)
+            elif input_str == 'A':
+                x = int(input("Please input tip index x:").strip())
+                y = int(input("Please input tip index y:").strip())
+                volume = int(input("Please input volume:").strip())
+                mg400.get_liquid(x, y, volume)
             else:
                 print("Invalid input. Please enter a valid option.")
     except KeyboardInterrupt:
@@ -103,6 +188,15 @@ def main_loop(mg400):
         print("MG400 disconnected safely.")
 
 def mg400_example():
+    mg400 = MG400(ip="192.168.0.107")
+    ok = mg400.intialize_robot()
+    if not ok:
+        print("Failed to initialize MG400, program aborted!")
+        exit()
+    mg400.move_home()
+    main_loop(mg400)
+
+def mg400_example_debug():
     mg400 = MG400(ip="192.168.0.107")
     ok = mg400.intialize_robot()
     if not ok:
