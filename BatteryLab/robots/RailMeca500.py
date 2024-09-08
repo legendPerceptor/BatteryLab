@@ -8,13 +8,14 @@ from pathlib import Path
 class RailMeca500(Meca500):
 
     def __init__(self, logger = None, log_path="logs", logger_filename="Meca500.log", robot_address="192.168.0.101",
+                 suction_pump = None,
                  robot_constants_config_file=Path(__file__).parent.parent / "configs" / "RailMeca500.yaml"):
         super().__init__(logger, log_path, logger_filename, robot_address, robot_constants_config_file)
         self.status = {}
-        self.suction_pump = SuctionPump(self.logger, self.status, vacuum_port=get_proper_port_for_device(SupportedDevices.SuctionPump))
+        self.suction_pump = suction_pump if suction_pump is not None else SuctionPump(self.logger, self.status, vacuum_port=get_proper_port_for_device(SupportedDevices.SuctionPump))
         ok = self.suction_pump.connect_pump()
         if not ok:
-            self.logger.error("Cannot connecto to the suction pump!")
+            self.logger.error("Cannot connect to the suction pump!")
             print("Cannot connect to the suction pump!")
         self.tool = RobotTool.SUCTION
 

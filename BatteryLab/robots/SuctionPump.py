@@ -4,7 +4,38 @@ from serial.tools import list_ports
 from ..helper.Logger import Logger
 from ..helper.utils import get_proper_port_for_device, SupportedDevices
 
-class SuctionPump():
+from abc import ABC, abstractmethod
+
+class SuctionPumpInterface(ABC):
+    @abstractmethod
+    def connect_pump(self) -> bool:
+        pass
+    
+    @abstractmethod
+    def check_connection(self) -> bool:
+        pass
+
+    @abstractmethod
+    def continues_pick(self) -> bool:
+        pass
+
+    @abstractmethod
+    def pick(self) -> bool:
+        pass
+
+    @abstractmethod
+    def drop(self) -> bool:
+        pass
+
+    @abstractmethod
+    def off(self) -> bool:
+        pass
+
+    @abstractmethod
+    def disconnect_pump(self) -> bool:
+        pass
+
+class SuctionPump(SuctionPumpInterface):
 
     def __init__(self, logger, status, vacuum_port, baudrate=9600, timeout=1):
         self.vacuum_port = vacuum_port
@@ -34,6 +65,8 @@ class SuctionPump():
             self.status['Vacuumed'] = True
         except serial.SerialException as e:
             self.logger.error(f"Error in pick operation: {e}")
+            return False
+        return True
     
     def pick(self):
         try:
@@ -41,6 +74,8 @@ class SuctionPump():
             self.status['Vacuumed'] = True
         except serial.SerialException as e:
             self.logger.error(f"Error in pick operation: {e}")
+            return False
+        return True
     
     def drop(self):
         try:
@@ -48,6 +83,8 @@ class SuctionPump():
             self.status['Vacuumed'] = False
         except serial.SerialException as e:
             self.logger.error(f"Error in drop operation: {e}")
+            return False
+        return True
     
     def off(self):
         try:
@@ -55,6 +92,8 @@ class SuctionPump():
             self.status['Vacuumed'] = False
         except serial.SerialException as e:
             self.logger.error(f"Error in off operation: {e}")
+            return False
+        return True
 
     def disconnect_pump(self):
         if self.serialcomm.isOpen():

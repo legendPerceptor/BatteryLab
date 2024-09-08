@@ -17,12 +17,14 @@ from datetime import datetime
 
 from ament_index_python.packages import get_package_share_path
 from camera_service.camera_client import ImageClient
+from suction_pump.suction_client import SuctionPumpClient
 
 class AssemblyRobot(Node):
 
     def __init__(self, logger=None, robot_address="192.168.0.100"):
         super().__init__('assembly_robot')
-        self.rail_meca500 = RailMeca500(logger=logger, robot_address=robot_address)
+        self.suction_pump_client = SuctionPumpClient()
+        self.rail_meca500 = RailMeca500(logger=logger, robot_address=robot_address, suction_pump=self.suction_pump_client)
         # self.status = dict(Progress=dict(Initiate=0, LastStep=None), Meca500Ready=False, ZaberRailReady=False)
         self.logger = Logger(logger_name="Assembly Robot", log_path="logs", logger_filename="assembly_robot.log") if logger is None else logger
         self.zaber_rail = LinearRailClient()
