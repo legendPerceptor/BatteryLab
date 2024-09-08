@@ -16,7 +16,7 @@ class SuctionPumpServer(Node):
         else:
             self.get_logger().info("Connected to the suction pump!")
     
-        self.get_linear_rail_pos_srv = self.create_service(SuctionPumpCtrl, '/suction_pump_ctrl', self.suction_pump_ctrl_callback)
+        self.suction_pump_ctrl_srv = self.create_service(SuctionPumpCtrl, '/suction_pump_ctrl', self.suction_pump_ctrl_callback)
         self.get_logger().info('Linear Rail Service is ready')
     
     def suction_pump_ctrl_callback(self, request, response):

@@ -59,7 +59,55 @@ POSITIONAL_COMMANDS = {
     'BLOWOUT_AND_MOVE'		: [str.encode("RB"),  str.encode("ok")], #position: nnn, without leading zeros
 }
 
-class SartoriusRLine():
+from abc import ABC, abstractmethod
+
+class SartoriusRLineInterface(ABC):
+
+    @abstractmethod
+    def tellPosition(self):
+        pass
+
+    @abstractmethod
+    def tellLevel(self):
+        pass
+
+    @abstractmethod
+    def initiate_rline(self):
+        pass
+
+    @abstractmethod
+    def aspirate(self, volume):
+        pass
+
+    @abstractmethod
+    def dispense(self, volume):
+        pass
+
+    @abstractmethod
+    def blowout(self):
+        pass
+
+    @abstractmethod
+    def clear_and_reset(self):
+        pass
+
+    @abstractmethod
+    def reset(self):
+        pass
+
+    @abstractmethod
+    def eject(self):
+        pass
+
+    @abstractmethod
+    def eject_and_home(self):
+        pass
+
+    @abstractmethod
+    def disconnect(self):
+        pass
+
+class SartoriusRLine(SartoriusRLineInterface):
 
     def __init__(self, port, logger = None, log_path="logs", log_file="sartorius_rline.log"):
         self.serial = serial.Serial()
@@ -178,6 +226,7 @@ class SartoriusRLine():
     def disconnect(self):
         self.serial.close()
         self.logger.info('Sartorius rLine disconnected!')
+        return True
     
 def sartorius_example_app():
     sartorius_rline = SartoriusRLine(port=get_proper_port_for_device(device_name=SupportedDevices.SartoriusRLine))

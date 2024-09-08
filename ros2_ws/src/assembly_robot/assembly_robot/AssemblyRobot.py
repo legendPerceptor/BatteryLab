@@ -33,9 +33,9 @@ class AssemblyRobot(Node):
         self.auto_correction = AutoCorrection(logger=logger)
         self.look_up_camera_client = ImageClient(node_name="assembly_robot_lookup_camera_client", serv_name="/batterylab/lookup_camera")
         self.arm_camera_client = ImageClient(node_name="assembly_robot_arm_camera_client", serv_name="/batterylab/rail_meca500_camera")
-        self.initialize_and_home_robots()
 
     def initialize_and_home_robots(self):
+        self.load_position_files()
         ok = self.rail_meca500.initializeRobot()
         if not ok:
             print("The Meca500 cannot be connected")
@@ -104,6 +104,23 @@ class AssemblyRobot(Node):
         self.logger.debug(f"Assembly Robot will start picking soon.")
         # Let Meca500 pick up the component and move it home
         self.rail_meca500.pick_place(grab_position, is_grab=is_grab)
+    
+    def load_position_files(self):
+        position_file = Path(get_package_share_path("assembly_robot")) / "yaml" / "well_positions.yaml"
+        with open(position_file, "r") as f:
+            try:
+                constant_positions = yaml.safe_load(f)
+            except yaml.YAMLError as e:
+                print("Cannot load the well positions YAML file with error: ", e)
+
+        self.assemblyRobotConstants = create_assembly_robot_constants_from_manual_positions(constant_positions)
+        camera_position_file = Path(get_package_share_path("assembly_robot")) / "yaml" / "arm_camera_positions.yaml"
+        with open(camera_position_file, "r") as f:
+            try:
+                camera_constant_positions = yaml.safe_load(f)
+            except yaml.YAMLError as e:
+                print("Cannot load the camera positions YAML file with error: ", e)
+        self.assemblyRobotCameraConstants = create_assembly_robot_camera_constants_from_manual_positions(camera_manual_positions=camera_constant_positions)
 
     def drop_component(self, drop_po, component:Components, nr:int, auto_calib:bool=True, grab_check:bool=True, save_img:bool=True, show_image:bool=False):
         """Drop the component to the assembly pod"""
@@ -196,23 +213,7 @@ def main():
     log_path = "/home/yuanjian/Research/BatteryLab/logs"
     logger = Logger("assembly_robot_test", log_path, "assembly_robot_test.log")
     robot = AssemblyRobot(logger=logger, robot_address="192.168.0.100")
-    position_file = Path(get_package_share_path("assembly_robot")) / "yaml" / "well_positions.yaml"
-    with open(position_file, "r") as f:
-        try:
-            constant_positions = yaml.safe_load(f)
-        except yaml.YAMLError as e:
-            print("Cannot load the well positions YAML file with error: ", e)
-
-    assembly_robot_constants = create_assembly_robot_constants_from_manual_positions(constant_positions)
-    robot.assemblyRobotConstants = assembly_robot_constants
-    camera_position_file = Path(get_package_share_path("assembly_robot")) / "yaml" / "arm_camera_positions.yaml"
-    with open(camera_position_file, "r") as f:
-        try:
-            camera_constant_positions = yaml.safe_load(f)
-        except yaml.YAMLError as e:
-            print("Cannot load the camera positions YAML file with error: ", e)
-    assembly_robot_camera_constants = create_assembly_robot_camera_constants_from_manual_positions(camera_manual_positions=camera_constant_positions)
-    robot.assemblyRobotCameraConstants = assembly_robot_camera_constants
+    robot.initialize_and_home_robots()
     prompt= """Press [Enter] to quit, [S] to test component suction,
 [M] to finish a cycle of assembly, [C] to take a photo of the desired tray,
 [L] to grab a component and move to the lookup camera for a picture.
@@ -228,7 +229,7 @@ def main():
             break
         elif input_str == 'S':
             component_name = input(component_prompt)
-            component = getattr(assembly_robot_constants, component_name)
+            component = getattr(robot.assemblyRobotConstants, component_name)
             if len(component) == 0:
                 print(f"The selected component <{component_name}> has not been manually positioned yet!")
                 continue
@@ -246,17 +247,17 @@ def main():
             cv2.imwrite(image_file, image)
         elif input_str == 'M':
             component_name = input(component_prompt)
-            component = getattr(assembly_robot_constants, component_name)
+            component = getattr(robot.assemblyRobotConstants, component_name)
             if len(component) == 0:
                 print(f"The selected component <{component_name}> has not been manually positioned yet!")
                 continue
             grabpos = component[0].grabPo
             railpos = component[0].railPo + 0.3 # The small offset error should not exist.
             robot.grab_component(railpos, grabpos[0], is_grab=True)
-            robot.grab_component(assembly_robot_constants.POST_RAIL_LOCATION, assembly_robot_constants.POST_C_SK_PO, is_grab=False)
+            robot.grab_component(robot.assemblyRobotConstants.POST_RAIL_LOCATION, robot.assemblyRobotConstants.POST_C_SK_PO, is_grab=False)
         elif input_str == 'L':
             component_name = input(component_prompt)
-            component = getattr(assembly_robot_constants, component_name)
+            component = getattr(robot.assemblyRobotConstants, component_name)
             if len(component) == 0:
                 print(f"The selected component <{component_name}> has not been manually positioned yet!")
                 continue
