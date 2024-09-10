@@ -18,6 +18,12 @@ class SartoriusServer(Node):
         self.sartorius_control_service = self.create_service(SartoriusCtrl, '/sartorius', self.sartorius_ctrl_callback)
         self.get_logger().info('Sartorius Dispensing Service is ready')
     
+    def disconnect(self):
+        ok = self.sartorius.disconnect()
+        if not ok:
+            self.get_logger().error("Cannot disconnect Sartorius")
+        self.get_logger().info("Sartorius disconnected successfully!")
+
     def sartorius_ctrl_callback(self, request, response):
         command = request.command
         volume = request.volume
@@ -57,7 +63,10 @@ class SartoriusServer(Node):
 def main(args=None):
     rclpy.init(args=args)
     sartorius_server = SartoriusServer()
-    rclpy.spin(sartorius_server)
+    try:
+        rclpy.spin(sartorius_server)
+    finally:
+        sartorius_server.disconnect()
     rclpy.shutdown()
 
 if __name__ == '__main__':

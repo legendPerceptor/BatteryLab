@@ -87,8 +87,8 @@ def cli_app():
     except KeyboardInterrupt:
         print("Program interrupted by user.")
     finally:
-        suctionPump.disconnect_pump()
-        print("Suction pump disconnected safely.")
+        # suctionPump.disconnect_pump()
+        # print("Suction pump disconnected safely.")
         suctionPump.destroy_node()
         print("Suction pump client node destroyed.")
 

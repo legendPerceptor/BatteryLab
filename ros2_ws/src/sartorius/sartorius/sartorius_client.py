@@ -96,10 +96,10 @@ def cli_app():
             elif input_str == 'E':
                 sartorius_rline.eject_and_home()
             elif input_str == 'A':
-                volume = float(input("Please input the volume to aspirate: ").strip())
+                volume = int(input("Please input the volume to aspirate: ").strip())
                 sartorius_rline.aspirate(volume)
             elif input_str == 'D':
-                volume = float(input("Please input the volume to dispense: ").strip())
+                volume = int(input("Please input the volume to dispense: ").strip())
                 sartorius_rline.dispense(volume)
             elif input_str == 'T':
                 response = sartorius_rline.tellLevel()
@@ -112,8 +112,8 @@ def cli_app():
     except KeyboardInterrupt:
         print("Program interrupted by user.")
     finally:
-        sartorius_rline.disconnect()
-        print("Sartorius rLine disconnected safely.")
+        # sartorius_rline.disconnect()
+        print("Sartorius rLine client exited safely.")
 
 def main():
     rclpy.init()

@@ -18,6 +18,13 @@ class SuctionPumpServer(Node):
     
         self.suction_pump_ctrl_srv = self.create_service(SuctionPumpCtrl, '/suction_pump_ctrl', self.suction_pump_ctrl_callback)
         self.get_logger().info('Suction Pump Service is ready')
+
+    def disconnect(self):
+        ok = self.suction_pump.disconnect_pump()
+        if not ok:
+            self.get_logger().error("Cannot disconnect pump")
+            return
+        self.get_logger().info("suction pump disconnected safely")
     
     def suction_pump_ctrl_callback(self, request, response):
         command = request.command
@@ -45,7 +52,10 @@ class SuctionPumpServer(Node):
 def main(args=None):
     rclpy.init(args=args)
     suction_pump_server = SuctionPumpServer()
-    rclpy.spin(suction_pump_server)
+    try:
+        rclpy.spin(suction_pump_server)
+    finally:
+        suction_pump_server.disconnect()
     rclpy.shutdown()
 
 if __name__ == '__main__':
