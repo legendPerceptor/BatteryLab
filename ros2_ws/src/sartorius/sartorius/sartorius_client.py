@@ -7,7 +7,7 @@ from BatteryLab.robots.SartoriusRLine import SartoriusRLineInterface
 class SartoriusClient(Node, SartoriusRLineInterface):
     def __init__(self):
         super().__init__("sartorius_client")
-        self.suction_pump_ctrl_cli = self.create_client(srv_type=SartoriusCtrl, srv_name='/sartorius')
+        self.sartorius_ctrl_cli = self.create_client(srv_type=SartoriusCtrl, srv_name='/sartorius')
         while not self.suction_pump_ctrl_cli.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Sartorius Ctrl Service not available, waiting...')
         self.sartorius_ctrl_request = SartoriusCtrl.Request()
@@ -15,7 +15,7 @@ class SartoriusClient(Node, SartoriusRLineInterface):
     def send_request(self, command, volume=0) -> rclpy.task.Future:
         self.sartorius_ctrl_request.command = command
         self.sartorius_ctrl_request.volume = volume
-        return self.suction_pump_ctrl_cli.call_async(self.pump_ctrl_request)
+        return self.sartorius_ctrl_cli.call_async(self.sartorius_ctrl_request)
     
     def handle_request_result(self, future):
         if future is not None:
