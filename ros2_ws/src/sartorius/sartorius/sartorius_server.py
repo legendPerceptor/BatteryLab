@@ -16,7 +16,7 @@ class SartoriusServer(Node):
             self.get_logger().info("Connected to the Sartorius RLine.")
     
         self.sartorius_control_service = self.create_service(SartoriusCtrl, '/sartorius', self.sartorius_ctrl_callback)
-        self.get_logger().info('Linear Rail Service is ready')
+        self.get_logger().info('Sartorius Dispensing Service is ready')
     
     def sartorius_ctrl_callback(self, request, response):
         command = request.command
