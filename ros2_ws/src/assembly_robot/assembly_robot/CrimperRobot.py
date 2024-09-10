@@ -10,7 +10,8 @@ import cv2
 class CrimperRobot(Node):
 
     def __init__(self, logger=None, robot_address="192.168.0.101"):
-        self.logger = Logger(logger_name="Assembly Robot", log_path="logs", logger_filename="assembly_robot.log") if logger is None else logger
+        super().__init__("crimper_robot")
+        self.logger = self.get_logger() if logger is None else logger
         self.crimper_robot = BreadBoardMeca500(logger=self.logger, robot_address=robot_address)
         self.tower_camera_client = ImageClient(node_name="crimper_tower_camera", serv_name="/batterylab/tower_camera")
         self.initialize_and_home_robots()

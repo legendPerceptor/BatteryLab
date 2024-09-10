@@ -8,9 +8,11 @@ from camera_service.camera_client import ImageClient
 from sartorius.sartorius_client import SartoriusClient
 
 class LiquidRobot(Node):
-    def __init__(self):
+    def __init__(self, logger=None):
+        super().__init__("liquid_robot")
+        self.logger = self.get_logger() if logger is None else logger
         self.sartorius = SartoriusClient()
-        self.MG400 = MG400(logger=self.get_logger(), sartorius_rline=self.sartorius)
+        self.MG400 = MG400(logger=self.logger, sartorius_rline=self.sartorius)
 
     def initialize(self):
         ok = self.MG400.intialize_robot()

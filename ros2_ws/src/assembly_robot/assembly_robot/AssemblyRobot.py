@@ -24,13 +24,14 @@ class AssemblyRobot(Node):
     def __init__(self, logger=None, robot_address="192.168.0.100"):
         super().__init__('assembly_robot')
         self.suction_pump_client = SuctionPumpClient()
-        self.rail_meca500 = RailMeca500(logger=logger, robot_address=robot_address, suction_pump=self.suction_pump_client)
+        self.logger = self.get_logger() if logger is None else logger
+        self.rail_meca500 = RailMeca500(logger=self.logger, robot_address=robot_address, suction_pump=self.suction_pump_client)
         # self.status = dict(Progress=dict(Initiate=0, LastStep=None), Meca500Ready=False, ZaberRailReady=False)
-        self.logger = Logger(logger_name="Assembly Robot", log_path="logs", logger_filename="assembly_robot.log") if logger is None else logger
+        
         self.zaber_rail = LinearRailClient()
         self.assemblyRobotConstants = AssemblyRobotConstants()
         self.assemblyRobotCameraConstants = AssemblyRobotCameraConstants()
-        self.auto_correction = AutoCorrection(logger=logger)
+        self.auto_correction = AutoCorrection(logger=self.logger)
         self.look_up_camera_client = ImageClient(node_name="assembly_robot_lookup_camera_client", serv_name="/batterylab/lookup_camera")
         self.arm_camera_client = ImageClient(node_name="assembly_robot_arm_camera_client", serv_name="/batterylab/rail_meca500_camera")
 
