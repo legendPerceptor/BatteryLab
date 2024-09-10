@@ -29,5 +29,12 @@ def generate_launch_description():
             parameters=[
                 {'service_name': '/batterylab/lookup_camera'}
             ]
+        ),
+
+        Node(
+            package='sartorius',
+            executable='sartorius_server',
+            name='sartorius_dispensing_server',
+            output='screen'
         )
     ])

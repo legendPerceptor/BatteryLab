@@ -25,7 +25,8 @@ setup(
         'console_scripts': [
             'assembly_robot = assembly_robot.AssemblyRobot:main',
             'test_yaml_path = assembly_robot.test_yaml_path:main',
-            'crimper_robot = assembly_robot.CrimperRobot:main'
+            'crimper_robot = assembly_robot.CrimperRobot:main',
+            'liquid_robot = assembly_robot.LiquidRobot:main'
         ],
     },
 )

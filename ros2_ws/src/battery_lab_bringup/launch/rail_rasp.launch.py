@@ -23,5 +23,12 @@ def generate_launch_description():
             parameters=[
                 {'service_name': '/batterylab/rail_meca500_camera'}
             ]
+        ),
+
+        Node(
+            package='suction_pump',
+            executable='suction_pump_server',
+            name='suction_pump_server',
+            output='screen'
         )
     ])
