@@ -42,7 +42,7 @@ class SuctionPumpClient(Node, SuctionPumpInterface):
         future = self.send_pump_ctrl_request(command="check_connection")
         return self.handle_request_result(future)
 
-    def continuous_pick(self):
+    def continues_pick(self):
         future = self.send_pump_ctrl_request(command="C")
         return self.handle_request_result(future)
 
@@ -65,15 +65,14 @@ class SuctionPumpClient(Node, SuctionPumpInterface):
 
 def cli_app():
     suctionPump = SuctionPumpClient()
-    prompt = """Press [Enter] to reset the pump, [C] to continuously suck, [P] to pick up an item,
-[D] to drop an item, [Q] to check connection, [exit] to exit the program.
-:>
-"""
+    prompt = """Press [Enter] to exit the program, [C] to continuously suck, [P] to pick up an item,
+[D] to drop an item, [Q] to check connection, [O] to reset the pump.
+:> """
     try:
         while True:
             input_str = input(prompt).strip().lower()
             if input_str == '':
-                suctionPump.off()
+                break
             elif input_str == 'p':
                 suctionPump.pick()
             elif input_str == 'd':
@@ -82,8 +81,8 @@ def cli_app():
                 print(f"The connection status: {suctionPump.check_connection()}")
             elif input_str == 'c':
                 suctionPump.continues_pick()
-            elif input_str == 'exit':
-                break
+            elif input_str == 'o':
+                suctionPump.off()
     except KeyboardInterrupt:
         print("Program interrupted by user.")
     finally:
