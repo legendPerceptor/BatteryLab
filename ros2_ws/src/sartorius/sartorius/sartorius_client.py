@@ -8,7 +8,7 @@ class SartoriusClient(Node, SartoriusRLineInterface):
     def __init__(self):
         super().__init__("sartorius_client")
         self.sartorius_ctrl_cli = self.create_client(srv_type=SartoriusCtrl, srv_name='/sartorius')
-        while not self.suction_pump_ctrl_cli.wait_for_service(timeout_sec=1.0):
+        while not self.sartorius_ctrl_cli.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Sartorius Ctrl Service not available, waiting...')
         self.sartorius_ctrl_request = SartoriusCtrl.Request()
     
