@@ -6,10 +6,10 @@ from BatteryLab.robots.SartoriusRLine import SartoriusRLineInterface
 
 class SartoriusClient(Node, SartoriusRLineInterface):
     def __init__(self):
-        super().__init__("suction_pump_client")
-        self.suction_pump_ctrl_cli = self.create_client(srv_type=SartoriusCtrl, srv_name='/suction_pump_ctrl')
+        super().__init__("sartorius_client")
+        self.suction_pump_ctrl_cli = self.create_client(srv_type=SartoriusCtrl, srv_name='/sartorius')
         while not self.suction_pump_ctrl_cli.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('Suction Pump Ctrl Service not available, waiting...')
+            self.get_logger().info('Sartorius Ctrl Service not available, waiting...')
         self.sartorius_ctrl_request = SartoriusCtrl.Request()
     
     def send_request(self, command, volume=0) -> rclpy.task.Future:
@@ -28,11 +28,11 @@ class SartoriusClient(Node, SartoriusRLineInterface):
                     except Exception as e:
                         self.get_logger().info(f'Service call failed {e}')
                     else:
-                        self.get_logger().info(f'The pump control request result: {response.status}')
+                        self.get_logger().info(f'The sartorius request result: {response.status}')
                         return response
                     break
         else:
-            self.get_logger().error("The pump control future to parse is None!")
+            self.get_logger().error("The sartorius future to parse is None!")
         return None
 
     def tellPosition(self):

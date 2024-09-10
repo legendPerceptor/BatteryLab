@@ -7,7 +7,7 @@ from battery_lab_custom_msg.srv import SartoriusCtrl # we reuse the service mess
 
 class SartoriusServer(Node):
     def __init__(self):
-        super().__init__('suction_pump_server')
+        super().__init__('sartorius_server')
         self.sartorius = SartoriusRLine(logger=self.get_logger(), port=get_proper_port_for_device(SupportedDevices.SartoriusRLine))
         ok = self.sartorius.initiate_rline()
         if not ok:
