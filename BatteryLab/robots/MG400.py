@@ -29,6 +29,10 @@ class MG400():
         self.liquid_poses_down: List[List[float]] = []
         self.assembly_pose_down: List[float] = []
         self.assembly_pose_up: List[float] = []
+        self.liquid_m = None
+        self.liquid_n = None
+        self.tip_m = None
+        self.tip_n = None
     
     def intialize_robot(self) -> bool:
         try:
@@ -56,16 +60,18 @@ class MG400():
     def move_to_tip_case(self, x, y):
         self.dashboard.Tool(index=0)
         self.dashboard.SpeedJ(10)
-        up_pos = self.tip_poses_up[x][y]
+        up_pos = self.tip_poses_up[self.get_tip_index(x, y)]
         self.movectl.MovJ(*up_pos)
+        time.sleep(10) # TODO: needs waiting for move to finish
         self.logger.info(f"finished moving to tipcase at ({x}, {y}).")
 
     def get_tip(self, x, y):
         self.move_to_tip_case(x, y)
         self.dashboard.SpeedL(3)
-        self.movectl.MovL(*self.tip_poses_down[x][y])
+        self.movectl.MovL(*self.tip_poses_down[self.get_tip_index(x, y)])
         time.sleep(5)
-        self.movectl.MovL(*self.tip_poses_up[x][y])
+        self.movectl.MovL(*self.tip_poses_up[self.get_tip_index(x, y)])
+        self.sartorius_rline.aspirate(10)
         self.logger.info(f"finished getting the tip at ({x}, {y}).")
 
     def drop_tip(self, x, y):
@@ -80,25 +86,25 @@ class MG400():
     def move_to_liquid(self, x, y):
         self.dashboard.Tool(index=0)
         self.dashboard.SpeedJ(10)
-        self.movectl.MovJ(*self.liquid_poses_up[x][y])
+        self.movectl.MovJ(*self.liquid_poses_up[self.get_liquid_index(x, y)])
         self.logger.info(f"finished moving for liquid bottle ({x}, {y}).")
 
     def get_liquid(self, x, y, volume):
         self.move_to_liquid(x, y)
         self.dashboard.SpeedL(3)
-        self.movectl.MovL(*self.liquid_poses_down[x][y])
+        self.movectl.MovL(*self.liquid_poses_down[self.get_liquid_index(x,y)])
         time.sleep(3)
         # TODO: level sensing and ensure the liquid is enough
         self.logger.info(f"The current liquid level: {self.sartorius_rline.tellLevel()}")
         self.sartorius_rline.aspirate(volume)
         time.sleep(3)
-        self.movectl.MovL(*self.liquid_poses_up[x][y])
+        self.movectl.MovL(*self.liquid_poses_up[self.get_liquid_index(x, y)])
         time.sleep(3)
 
     def return_liquid(self, x, y):
         self.move_to_liquid(x, y)
         self.dashboard.SpeedL(3)
-        self.movectl.MovL(*self.liquid_poses_down[x][y])
+        self.movectl.MovL(*self.liquid_poses_down[self.get_liquid_index(x, y)])
         time.sleep(3)
         self.sartorius_rline.blowout()
 
@@ -110,6 +116,12 @@ class MG400():
         time.sleep(5)
         self.movectl.MovL(*self.assembly_pose_up)
 
+    def get_tip_index(self, x, y):
+        return x * self.tip_n + y
+    
+    def get_liquid_index(self, x, y):
+        return x * self.liquid_n + y
+
     def parse_position_file(self):
         with open(self.position_file) as f:
             config = yaml.safe_load(f)
@@ -117,6 +129,8 @@ class MG400():
         tipcase = config["TipCase"]
         m = int(tipcase["m"])
         n = int(tipcase["n"])
+        self.tip_m = m
+        self.tip_n = n
 
         self.tip_poses_down = get_m_n_well_pos(tipcase["bottom_left"]["down"],
                          tipcase["bottom_right"]["down"],
@@ -130,6 +144,8 @@ class MG400():
         liquid = config["Liquid"]
         m = int(liquid["m"])
         n = int(liquid["n"])
+        self.liquid_m = m
+        self.liquid_n = n
         self.liquid_poses_down = get_m_n_well_pos(liquid["bottom_left"]["down"],
                          liquid["bottom_right"]["down"],
                          liquid["top_left"]["down"],
@@ -143,8 +159,8 @@ class MG400():
         self.assembly_pose_down = config["AssemblyPost"]["drop_location"]
 
 def main_loop(mg400:MG400):
-    prompt="""Press [Enter] to quit, [0] to home the robot, [M] to drive to tip case,
-[G] to get tip at tipcase(x,y), [A] to aspirate liquid with volume, [D] to return tip to tipcase (x,y),
+    prompt="""Press [Enter] to quit, [0] to home the robot, [M] to drive to tip case/liquid case,
+[G] to get tip at tipcase case(x,y), [A] to get liquid at liquid case (x,y) with volume, [D] to return tip to tipcase (x,y),
 [R] to return liquid to liquidcase(x,y), [J] to dispense liquid with volume to the post.
 :> 
 """
@@ -156,9 +172,17 @@ def main_loop(mg400:MG400):
             elif input_str == '0':
                 mg400.move_home()
             elif input_str == 'M':
-                x = int(input("Please input tip index x:").strip())
-                y = int(input("Please input tip index y:").strip())
-                mg400.move_to_tip_case(x, y) 
+                choice = input("Please select which case to go (tip/liquid):")
+                if choice == 'tip':
+                    x = int(input("Please input tip index x:").strip())
+                    y = int(input("Please input tip index y:").strip())
+                    mg400.move_to_tip_case(x, y)
+                elif choice == 'liquid':
+                    x = int(input("Please input liquid index x:").strip())
+                    y = int(input("Please input liquid index y:").strip())
+                    mg400.move_to_liquid(x, y)
+                else:
+                    print("Your choice is invalid!")
             elif input_str == 'G':
                 x = int(input("Please input tip index x:").strip())
                 y = int(input("Please input tip index y:").strip())

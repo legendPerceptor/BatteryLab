@@ -40,7 +40,7 @@ class SartoriusClient(Node, SartoriusRLineInterface):
         return self.handle_request_result(future)
 
     def tellLevel(self):
-        future = self.send_pump_ctrl_request(command="tellLevel")
+        future = self.send_request(command="tellLevel")
         return self.handle_request_result(future)
 
     def initiate_rline(self):
