@@ -158,10 +158,31 @@ class MG400():
         self.assembly_pose_up = config["AssemblyPost"]["prepare_location"]
         self.assembly_pose_down = config["AssemblyPost"]["drop_location"]
 
+def manual_position_loop(mg400: MG400):
+    mode = input("do you want to drive in joints (J) or cartesian (C)? Type in J or C: ")
+    if mode == 'J':
+        parameters_str = input("Please type in the 4 joints [J1, J2, J3, J4]:")
+    elif mode =='C':
+        parameters_str = input("Please type in the 4 cartesian coordinates: [X, Y, Z, R]:")
+    else:
+        print("The mode you select does not exist! Please select J or C!")
+        return
+
+    parameters_str = parameters_str.strip('[]')
+    parameters = [float(x) for x in parameters_str.split(',')]
+    if mode == 'J':
+        print(f"The robot is moving with JointMovJ to {parameters}")
+        mg400.movectl.JointMovJ(*parameters)
+    elif mode == 'C':
+        print(f"The robot is moving with MovJ to cartesian coordinates {parameters}")
+        mg400.movectl.MovJ(*parameters)
+    
+
 def main_loop(mg400:MG400):
     prompt="""Press [Enter] to quit, [0] to home the robot, [M] to drive to tip case/liquid case,
 [G] to get tip at tipcase case(x,y), [A] to get liquid at liquid case (x,y) with volume, [D] to return tip to tipcase (x,y),
 [R] to return liquid to liquidcase(x,y), [J] to dispense liquid with volume to the post.
+[Z] to enter manual positioning mode.
 :> 
 """
     try:
@@ -169,6 +190,8 @@ def main_loop(mg400:MG400):
             input_str = input(prompt).strip().upper()
             if input_str == '':
                 break
+            elif input_str == 'Z':
+                manual_position_loop(mg400)
             elif input_str == '0':
                 mg400.move_home()
             elif input_str == 'M':
