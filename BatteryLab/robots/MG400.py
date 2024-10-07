@@ -39,16 +39,19 @@ class MG400():
             self.dashboard = DobotApiDashboard(ip=self.ip, port=self.dashboardPort)
             self.movectl = DobotApiMove(ip=self.ip, port=self.movePort)
             self.feed = DobotApi(ip=self.ip, port=self.feedPort)
+            self.logger.info("Created Dobot API control panel!")
         except Exception as e:
             self.logger.error("Cannot connect to the MG400, error: ", e)
             return False
         
         try:
             self.parse_position_file()
+            self.logger.info("Finished parsing the MG400 position file!")
         except Exception as e:
             self.logger.error("Failed to load the config file for MG400, error:", e)
             return False
         self.dashboard.EnableRobot()
+        self.logger.info("Finished enabling the robot, initialization succeeded!")
         return True
 
     def disconnect(self):
@@ -57,12 +60,19 @@ class MG400():
     def move_home(self):
         self.movectl.JointMovJ(*self.home)
 
-    def move_to_tip_case(self, x, y):
+    def move_to_tip_case(self, x, y, level = 1):
+        # The level is a percentage of the height, 0 will be at the down pos, 1 will be at the up pos
         self.dashboard.Tool(index=0)
         self.dashboard.SpeedJ(10)
+        self.dashboard.SpeedL(3)
         up_pos = self.tip_poses_up[self.get_tip_index(x, y)]
+        down_pos = self.tip_poses_down[self.get_tip_index(x, y)]
+        move_pos = [down_pos[0], down_pos[1], (up_pos[2]-down_pos[2]) * level + down_pos[2], down_pos[3]]
         self.movectl.MovJ(*up_pos)
-        time.sleep(10) # TODO: needs waiting for move to finish
+        time.sleep(5)
+        if level < 1:
+            self.movectl.MovL(*move_pos)
+            time.sleep(3) # TODO: needs waiting for move to finish
         self.logger.info(f"finished moving to tipcase at ({x}, {y}).")
 
     def get_tip(self, x, y):
@@ -75,13 +85,17 @@ class MG400():
         self.logger.info(f"finished getting the tip at ({x}, {y}).")
 
     def drop_tip(self, x, y):
-        self.move_to_tip_case(x, y)
+        self.move_to_tip_case(x, y, 0.4)
         self.sartorius_rline.eject_and_home()
+        self.move_to_tip_case(x, y)
         self.logger.info(f"The tip should have been ejected")
 
     def move_to_assemble_post(self):
         self.dashboard.SpeedJ(10)
-        self.movectl.JointMovJ(*self.assembly_pose_up)
+        self.movectl.JointMovJ(-90, 0, 0, 0)
+        time.sleep(10) # TODO: wait for the robot to be idle
+        self.movectl.MovJ(*self.assembly_pose_up)
+        time.sleep(5) # TODO: wait for the robot to move to the assembly post
 
     def move_to_liquid(self, x, y):
         self.dashboard.Tool(index=0)
@@ -95,7 +109,7 @@ class MG400():
         self.movectl.MovL(*self.liquid_poses_down[self.get_liquid_index(x,y)])
         time.sleep(3)
         # TODO: level sensing and ensure the liquid is enough
-        self.logger.info(f"The current liquid level: {self.sartorius_rline.tellLevel()}")
+        # self.logger.info(f"The current liquid level: {self.sartorius_rline.tellLevel()}")
         self.sartorius_rline.aspirate(volume)
         time.sleep(3)
         self.movectl.MovL(*self.liquid_poses_up[self.get_liquid_index(x, y)])

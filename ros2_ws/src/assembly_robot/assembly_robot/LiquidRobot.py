@@ -15,8 +15,9 @@ class LiquidRobot(Node):
         ok = self.MG400.intialize_robot()
         if not ok:
             print("Failed to initialize MG400, program aborted!")
-            exit()
+            return False
         self.MG400.move_home()
+        return True
     
     def disconnect(self):
         self.MG400.disconnect()
@@ -24,6 +25,10 @@ class LiquidRobot(Node):
 
 
 def manual_position_loop(liquid_robot: LiquidRobot):
+    cartesian = liquid_robot.MG400.dashboard.GetPose()
+    joints = liquid_robot.MG400.dashboard.GetAngle()
+    print(f"The current cartesian coordinates are [{cartesian}]")
+    print(f"The current joint angles are [{joints}]")
     mode = input("do you want to drive in joints (J) or cartesian (C)? Type in J or C: ")
     if mode == 'J':
         parameters_str = input("Please type in the 4 joints [J1, J2, J3, J4]:")
@@ -47,7 +52,7 @@ def main_loop(liquidRobot :LiquidRobot):
     prompt="""Press [Enter] to quit, [0] to home the robot, [M] to drive to tip case/liquid case,
 [G] to get tip at tipcase case(x,y), [A] to get liquid at liquid case (x,y) with volume, [D] to return tip to tipcase (x,y),
 [R] to return liquid to liquidcase(x,y), [J] to dispense liquid with volume to the post.
-[Z] to enter manual positioning mode.
+[S] to move to the assembly post [Z] to enter manual positioning mode.
 :> 
 """
     try:
