@@ -294,7 +294,7 @@ Spacer:
         component = manual_positions[component_name]
 
         sub_locations = ["bottom_right_box", "bottom_left_box", "top_left_box", "top_right_box"]
-        component_property_list = []
+        component_property_dict = {}
         for sub_location in sub_locations:
             component_sub_loc = component[sub_location]
             if component_sub_loc[rail_pos_prop] == -1: # ignore the sub locations that is not reachable
@@ -308,8 +308,8 @@ Spacer:
             top_left_coordinates = component_sub_loc[top_left_prop][cartesian_coord_prop]
             top_right_coordinates = component_sub_loc[top_right_prop][cartesian_coord_prop]
             component_property.grabPo = get_m_n_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left_coordinates, top_right_coordinates, 4, 4)
-            component_property_list.append(component_property)
-        setattr(constants, component_name, component_property_list)
+            component_property_dict[sub_location] = component_property
+        setattr(constants, component_name, component_property_dict)
         print(f"Finished Dealing with component <{component_name}>")
 
     return constants

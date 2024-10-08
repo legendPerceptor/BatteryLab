@@ -82,13 +82,13 @@ class AssemblyRobotConstants():
         self.POST_RAIL_LOCATION: float = 100.0
         self.LOOKUP_CAM_SK_PO: List[float] = [0, 0, 0, 0, 0, 0]
         self.LOOKUP_CAM_RAIL_LOCATION: float = 100.0
-        self.AnodeCase: List[ComponentProperty] = []
-        self.Anode: List[ComponentProperty] = []
-        self.Separator: List[ComponentProperty] = []
-        self.Cathode: List[ComponentProperty] = []
-        self.Spacer: List[ComponentProperty] = []
-        self.Washer: List[ComponentProperty] = []
-        self.CathodeCase: List[ComponentProperty] = []
+        self.CathodeCase: dict = {}
+        self.Cathode: dict = {}
+        self.Separator: dict = {}
+        self.Anode: dict = {}
+        self.Washer: dict = {}
+        self.Spacer: dict = {}
+        self.AnodeCase: dict = {}
 
 class StepCorrectionConfig(BaseModel):
     name: str

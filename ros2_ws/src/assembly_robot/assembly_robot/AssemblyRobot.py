@@ -209,6 +209,20 @@ class AssemblyRobot(Node):
         # self.status["Progress"]["LastStep"] = AssemblySteps.Drop
         return True
 
+def get_component_location_from_user(robot, component_prompt):
+    component_name = input(component_prompt)
+    component = getattr(robot.assemblyRobotConstants, component_name)
+    available_locations = list(component.keys())
+    if len(available_locations) == 0:
+        print(f"The selected component <{component_name}> has not been manually positioned yet!")
+        exit()
+    sub_location = input(f"Which corner do you want to test ({available_locations}): ")
+    if sub_location not in available_locations:
+        print("The sublocation you pick is not valid!")
+        exit()
+    location = component[sub_location]
+    return location.grabPo, location.railPo, sub_location
+
 def main():
     rclpy.init()
     log_path = "/home/yuanjian/Research/BatteryLab/logs"
@@ -216,27 +230,25 @@ def main():
     robot = AssemblyRobot(logger=logger, robot_address="192.168.0.100")
     robot.initialize_and_home_robots()
     prompt= """Press [Enter] to quit, [S] to test component suction,
-[M] to finish a cycle of assembly, [C] to take a photo of the desired tray,
+[M] to move a component to the assembly post, [C] to take a photo of the desired tray,
 [L] to grab a component and move to the lookup camera for a picture.
 :> """
 
     component_prompt = """Which type of component do you want to test? Choose from the following
 ["CathodeCase", "Cathode", "Separator", "Anode", "Washer", "Spacer", "AnodeCase"]
 :> """
-    
+
     while True:
         input_str = input(prompt).strip().upper()
         if input_str == '':
             break
         elif input_str == 'S':
-            component_name = input(component_prompt)
-            component = getattr(robot.assemblyRobotConstants, component_name)
-            if len(component) == 0:
-                print(f"The selected component <{component_name}> has not been manually positioned yet!")
-                continue
-            grabpos = component[0].grabPo
-            railpos = component[0].railPo + 0.3 # For a small offset error after manual positioning.
-            for i in range(0, len(grabpos), 4):
+            grabpos, railpos, sub_location = get_component_location_from_user(robot, component_prompt)
+            test_range = [0, 3, 12, 15]
+            test_all = input(f"Do you want to test the four corners or test all? (all/corners) default is corners:")
+            if test_all == "all":
+                test_range = range(0, len(grabpos))
+            for i in test_range:
                 print(f"reaching the position of well {i}: {grabpos[i]}")
                 robot.grab_component(railpos, grabpos[i], is_grab=True)
                 robot.grab_component(railpos, grabpos[i], is_grab=False)
@@ -247,30 +259,27 @@ def main():
             image_file = str(Path(log_path) / f"ArmCam-{component_name}-{cur_time}.jpg")
             cv2.imwrite(image_file, image)
         elif input_str == 'M':
-            component_name = input(component_prompt)
-            component = getattr(robot.assemblyRobotConstants, component_name)
-            if len(component) == 0:
-                print(f"The selected component <{component_name}> has not been manually positioned yet!")
+            grabpos, railpos, sub_location = get_component_location_from_user(robot, component_prompt)
+            index = int(input(f"which index do you want the robot to reach for {sub_location}, range [0, {len(grabpos)}):"))
+            if index >=0 and index < len(grabpos):
+                robot.grab_component(railpos, grabpos[index], is_grab=True)
+                robot.grab_component(robot.assemblyRobotConstants.POST_RAIL_LOCATION, robot.assemblyRobotConstants.POST_C_SK_PO, is_grab=False)
+            else:
+                print("The index you give is not valid for the robot to grab!")
                 continue
-            grabpos = component[0].grabPo
-            railpos = component[0].railPo + 0.3 # The small offset error should not exist.
-            robot.grab_component(railpos, grabpos[0], is_grab=True)
-            robot.grab_component(robot.assemblyRobotConstants.POST_RAIL_LOCATION, robot.assemblyRobotConstants.POST_C_SK_PO, is_grab=False)
         elif input_str == 'L':
-            component_name = input(component_prompt)
-            component = getattr(robot.assemblyRobotConstants, component_name)
-            if len(component) == 0:
-                print(f"The selected component <{component_name}> has not been manually positioned yet!")
+            grabpos, railpos, sub_location = get_component_location_from_user(robot, component_prompt)
+            index = int(input(f"which index do you want the robot to reach for {sub_location}, range [0, {len(grabpos)}):"))
+            if not (index >=0 and index < len(grabpos)):
+                print("The index you give is not valid for the robot to grab!")
                 continue
-            grabpos = component[0].grabPo
-            railpos = component[0].railPo + 0.3 # The small offset error should not exist.
-            robot.grab_component(railpos, grabpos[0], is_grab=True)
+            robot.grab_component(railpos, grabpos[index], is_grab=True)
             image = robot.take_a_look_up_photo()
             cur_time = datetime.now().strftime("$Y-%m-%d-%H-%M:%S")
             image_file = str(Path(log_path) / f"Lookup-{component_name}-{cur_time}.jpg")
             cv2.imwrite(image_file, image)
             robot.rail_meca500.move_home(tool=RobotTool.SUCTION)
-            robot.grab_component(railpos, grabpos[0], is_grab=False)
+            robot.grab_component(railpos, grabpos[index], is_grab=False)
 
     robot.destroy_node()
     rclpy.shutdown()
