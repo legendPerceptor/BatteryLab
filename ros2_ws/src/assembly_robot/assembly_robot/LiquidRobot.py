@@ -71,8 +71,8 @@ def main_loop(liquidRobot :LiquidRobot):
                     y = int(input("Please input tip index y:").strip())
                     liquidRobot.MG400.move_to_tip_case(x, y)
                 elif choice == 'liquid':
-                    x = int(input("Please input liquid index x:").strip())
-                    y = int(input("Please input liquid index y:").strip())
+                    x = int(input("Please input liquid bottle index x:").strip())
+                    y = int(input("Please input liquid bottle index y:").strip())
                     liquidRobot.MG400.move_to_liquid(x, y)
                 else:
                     print("Your choice is invalid!")
@@ -85,15 +85,15 @@ def main_loop(liquidRobot :LiquidRobot):
                 y = int(input("Please input tip index y:").strip())
                 liquidRobot.MG400.drop_tip(x, y)
             elif input_str == 'R':
-                x = int(input("Please input tip index x:").strip())
-                y = int(input("Please input tip index y:").strip())
+                x = int(input("Please input liquid bottle index x:").strip())
+                y = int(input("Please input liquid bottle index y:").strip())
                 liquidRobot.MG400.return_liquid(x, y)
             elif input_str == 'J':
                 volume = int(input("Please input volume:").strip())
                 liquidRobot.MG400.add_liquid_to_post(volume)
             elif input_str == 'A':
-                x = int(input("Please input tip index x:").strip())
-                y = int(input("Please input tip index y:").strip())
+                x = int(input("Please input liquid bottle index x:").strip())
+                y = int(input("Please input liquid bottle index y:").strip())
                 volume = int(input("Please input volume:").strip())
                 liquidRobot.MG400.get_liquid(x, y, volume)
             else:
