@@ -50,7 +50,7 @@ class MG400():
         except Exception as e:
             self.logger.error("Failed to load the config file for MG400, error:", e)
             return False
-        self.dashboard.EnableRobot()
+        self.dashboard.EnableRobot(0.145, 50, 0, 0)
         self.logger.info("Finished enabling the robot, initialization succeeded!")
         return True
 
