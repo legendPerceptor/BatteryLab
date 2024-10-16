@@ -11,13 +11,14 @@ class Meca500RobotConstants(BaseModel):
     GRIP_VEL: int = 20
     L_VEL: int = 10
     J_VEL: int = 10
-    TCP_GP: List[float] = [49.5, 0, 13.95, 45, 0, 0]
-    TCP_SK: List[float] = [34.479, 11.2, 84.3116, 0, 30, 0]
+    TCP_GP: List[float] = [0, 0, 0, 0, 0, 0]
+    TCP_SK: List[float] = [0, 0, 0, 0, 0, 0]
+    TCP_CA: List[float] = [0, 0, 0, 0, 0, 0]
     HOME_GP_J: List[float] = [0, 0, 0, 0, 0, 0]
     HOME_SK_J: List[float] = [0, 0, 0, 0, 0, 0]
+    HOME_CA_J: List[float] = [0, 0, 0, 0, 0, 0]
     HOME_POST_J: List[float] = [0, 0, 0, 0, 0, 0]
-    HOME_SK_J: List[float] = [0, 0 ,0 ,0 ,0 ,0]
-    SNAP_SHOT_GRAB_PO: List[float] = [ -29.527, 200.934, 91.81, -175.0, 0.0, 90.0]
+    SNAP_SHOT_GRAB_PO: List[float] = [0, 0, 0, 0, 0, 0]
 
 class Components(Enum):
     Anode_Case=1
@@ -40,19 +41,54 @@ class ComponentProperty():
     def __init__(self):
         self.railPo: List[float] = None
         self.dropPo: List[float] = None
-        self.grabPo: dict[int, List[float]] = None
+        self.grabPo: List[List[float]] = None
+
+class AssemblyRobotCameraConstants():
+    def __init__(self):
+        self.HOME_J: List[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.TRF: List[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.RobotPose: List[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.AnodeCase: float = 0.0
+        self.Anode: float = 0.0
+        self.Separator: float = 0.0
+        self.Cathode: float = 0.0
+        self.Spacer: float = 0.0
+        self.Washer: float = 0.0
+        self.CathodeCase: float = 0.0
+
+class CrimperRobotConstants(BaseModel):
+        TRF : List[float] = [20, 0, 95,  0,  0,  0]
+        Home : List[float] = [-45, 0, 0, 0, 45, 0]
+        PostReadyPose: List[float] = [-26.08631, 332.29777, 100, -90.00002, 0, 90]
+        PostDownPose: List[float] = [-26.08631, 332.29776, 70.09248, -90.00002, 0, 90]
+        GrabReadyPose: List[float] = [-26.08631, 322.62557, 70.09251, -90.00002, 0, 90]
+        GrabbedUpPose: List[float] = [-26.08631, 322.62556, 93.28549, -90.00002, 0, 90]
+        PhotoCheckPreparePose: List[float] = [213.81964, 69.62883, 148.54655, 0, 90, 0]
+        PhotoCheckPose: List[float] = [261.2986, 69.62884, 148.54655, 0, 90, 0]
+        CrimperReadyToOperatePose: List[float] = [1.40814, -193.09457, 340.27525, 90, 0, -90]
+        CrimperDropPose: List[float] = [1.40814, -281.92951, 340.27525, 90, 0, -90]
+        CrimperReadyToPickPose: List[float] = [1.40817, -292.28907, 339.06158, 90, 0, -90]
+        CrimperPickPressPose: List[float] = [1.40817, -292.28907, 333.83704, 90, 0, -90]
+        CrimperPickPose: List[float] = [1.40814, -281.92949, 331.8871, 90, 0, -90]
+        CrimperPickedUpPose: List[float] = [1.40814, -281.92949, 338.49117, 90, 0, -90]
+        StorageReadyPose: List[float] = [-88.25037, 258.84746, 138.26627, -90, -0.00001, 90]
+        StorageDropPose: List[float] = [-88.25037, 258.84746, 105.13378, -90, -0.00002, 90]
 
 class AssemblyRobotConstants():
     def __init__(self):
+        self.HOME_J = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.TRF = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.POST_C_SK_PO: List[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        self.POST_RAIL_LOCATION: int = 100
-        self.AnodeCase: ComponentProperty = None
-        self.Anode: ComponentProperty = None
-        self.Separator: ComponentProperty = None
-        self.Cathode: ComponentProperty = None
-        self.Spacer: ComponentProperty = None
-        self.Washer: ComponentProperty = None
-        self.CathodeCase: ComponentProperty = None
+        self.POST_RAIL_LOCATION: float = 100.0
+        self.LOOKUP_CAM_SK_PO: List[float] = [0, 0, 0, 0, 0, 0]
+        self.LOOKUP_CAM_RAIL_LOCATION: float = 100.0
+        self.CathodeCase: dict = {}
+        self.Cathode: dict = {}
+        self.Separator: dict = {}
+        self.Anode: dict = {}
+        self.Washer: dict = {}
+        self.Spacer: dict = {}
+        self.AnodeCase: dict = {}
 
 class StepCorrectionConfig(BaseModel):
     name: str

@@ -1,7 +1,6 @@
 from setuptools import find_packages, setup
-from glob import glob
 
-package_name = 'assembly_robot'
+package_name = 'suction_pump'
 
 setup(
     name=package_name,
@@ -11,8 +10,6 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        ('share/' + package_name + '/yaml', ['yaml/well_positions.yaml']),
-        ('share/' + package_name + '/yaml', ['yaml/arm_camera_positions.yaml']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -23,10 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'assembly_robot = assembly_robot.AssemblyRobot:main',
-            'test_yaml_path = assembly_robot.test_yaml_path:main',
-            'crimper_robot = assembly_robot.CrimperRobot:main',
-            'liquid_robot = assembly_robot.LiquidRobot:main'
+            "suction_pump_server = suction_pump.suction_server:main",
+            "suction_pump_client = suction_pump.suction_client:main"
         ],
     },
 )

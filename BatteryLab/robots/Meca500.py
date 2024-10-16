@@ -3,31 +3,35 @@ from mecademicpy import tools
 
 import mecademicpy.robot as mdr
 from ..helper.Logger import Logger
-from ..helper.utils import get_proper_port_for_device, SupportedDevices
 
-from .SuctionPump import SuctionPump
 from .Constants import Meca500RobotConstants, RobotTool
-
+import yaml
+from pathlib import Path
 
 class Meca500():
-    def __init__(self, logger = None, log_path="logs", logger_filename="Meca500.log", robot_address="192.168.0.101"):
+
+    def __init__(self, logger = None, log_path="logs", logger_filename="Meca500.log", robot_address="192.168.0.101",
+                 robot_constants_config_file=Path(__file__).parent.parent / "configs" / "BreadBoardMeca500.yaml", robot_name="Meca500"):
+        try:
+            with open(robot_constants_config_file, 'r') as file:
+                yaml_data = yaml.safe_load(file)
+                self.RobotConstants = Meca500RobotConstants(**yaml_data)
+        except Exception as e:
+            self.logger.error("Cannot load the robot constants: ", e)
+            print("Program will exit because it cannot load robot constants")
+            exit()
+
         self.robot = Robot()
         self.robot_address = robot_address
         self.logger = Logger("Meca500", log_path=log_path, logger_filename=logger_filename) if logger is None else logger
-        # Status
-        self.status = dict(Tool=None, Progress=dict(Initiate=0, LastStep=None), Initiated=False, Vacuumed=False, Grabbed=True, Aborted=False)
-        self.suction_pump = SuctionPump(self.logger, self.status, vacuum_port=get_proper_port_for_device(SupportedDevices.SuctionPump))
-        self.home = [0, 0, 0, 0, 45, 0]
-        # Constants
-        self.LIN_SPEED = 50
-        self.SLOW_DOWN = 30
-        self.RobotConstants = Meca500RobotConstants()
 
+        self.robot_name = robot_name
+    
     def __del__(self):
         if self.robot is not None:
             self.logger.info("Exit the robot in __del__ function")
             self.exitRobot()
-
+    
     def exitRobot(self):
         self.robot.DeactivateRobot()
         self.robot.Disconnect()
@@ -43,21 +47,22 @@ class Meca500():
             return False
         
         try:
-            self.logger.info("Activating and homing the Meca500 robot!")
+            self.logger.info(f"Activating and homing the {self.robot_name} robot!")
             self.robot.ActivateRobot()
             self.robot.Home()
             self.robot.WaitHomed()
-            self.logger.info("Meca500 is homed and ready!")
+            self.logger.info(f"{self.robot_name} is homed and ready!")
             if tools.robot_model_is_meca500(self.robot.GetRobotInfo().robot_model):
                 self.logger.info("The robot is confirmed to be Meca500!")
                 # TODO: Set Gripper Force, Joint Velocity and other parameters
-                # self.robot.SetGripperForce(self.RobotConstants.GRIP_F)
-                # self.robot.SetGripperVel(self.RobotConstants.GRIP_VEL)
-                # self.robot.SetCartLinVel(self.RobotConstants.L_VEL)
-                # self.robot.SetJointVel(self.RobotConstants.J_VEL)
-                # self.robot.SetJointAcc(20)
-                self.robot.MoveJoints(0, 0, 0, 0, 0, 0)
-                self.logger.info("Assembly Meca500 is initilized!")
+                self.robot.SetGripperForce(self.RobotConstants.GRIP_F)
+                self.robot.SetGripperVel(self.RobotConstants.GRIP_VEL)
+                self.robot.SetCartLinVel(self.RobotConstants.L_VEL)
+                self.robot.SetJointVel(self.RobotConstants.J_VEL)
+                self.robot.SetJointAcc(20)
+                self.robot.MoveJoints(*self.RobotConstants.HOME_SK_J)
+                self.logger.info(f"The {self.robot_name} is initialized!")
+            return True
         except Exception as exception:
             if self.robot.GetStatusRobot().error_status:
                 self.logger.info(exception)
@@ -66,75 +71,20 @@ class Meca500():
                 self.robot.ResumeMotion()
             else:
                 raise
-        
-        ok = self.suction_pump.connect_pump()
-        if not ok:
-            print("suction pump cannot be connected!")
-            self.logger.error("suction pump cannot be connected!")
-        else:
-            print("suction pump is successfully connected!")
-            self.logger.info("suction pump is successfully connected!")
-        return True
+        return False
 
-    def change_tool(self, tool_name: RobotTool):
-        if tool_name == RobotTool.GRIPPER:
-            self.robot.SetTRF(*self.RobotConstants.TCP_GP)
-            self.status["Tool"] = RobotTool.GRIPPER
-            self.home = self.RobotConstants.HOME_GP_J
-        elif tool_name == RobotTool.SUCTION:
-            self.robot.SetTRF(*self.RobotConstants.TCP_SK)
-            self.status["Tool"] = RobotTool.SUCTION
-            self.home = self.RobotConstants.HOME_SK_J
-    
-    def move_home(self):
-        self.logger.debug(f"Meca 500 moving to home at {self.home}")
-        self.robot.MoveJoints(*self.home)
+    def move_home(self, tool: RobotTool):
+        self.logger.debug(f"{self.robot_name} moving to home with tool {tool.name}")
+        if tool == RobotTool.SUCTION:
+            self.robot.MoveJoints(*self.RobotConstants.HOME_SK_J)
+        elif tool == RobotTool.GRIPPER:
+            self.robot.MoveJoints(*self.RobotConstants.HOME_GP_J)
         self.robot.WaitIdle(30)
 
     def move_for_snapshot(self):
         self.robot.MovePose(*self.RobotConstants.SNAP_SHOT_GRAB_PO)
         self.robot.WaitIdle(30)
 
-    def smart_grab(self):
-        # if self.status["Tool"] == RobotTool.GRIPPER:
-        #     self.robot.GripperClose()
-        #     self.robot.WaitGripperMoveCompletion()
-        # elif self.status["Tool"] == RobotTool.SUCTION:
-        #     self.suction_pump.pick()
-        self.suction_pump.continues_pick()
-    
-    def smart_drop(self):
-        # if self.status["Tool"] == RobotTool.GRIPPER:
-        #     self.robot.GripperOpen()
-        #     self.robot.WaitGripperMoveCompletion()
-        # elif self.status["Tool"] == RobotTool.SUCTION:
-        #     self.suction_pump.drop()
-        self.suction_pump.drop()
-
-    def move_after_drop(self):
-        self.robot.MoveJoints(*self.RobotConstants.HOME_POST_J)
-        self.robot.MoveJoints(*self.RobotConstants.HOME_SK_J)
-
-    def pick_place(self, grab_pos, is_grab = True):
-        self.logger.info(f"Starting picking component at {grab_pos}")
-        self.robot.MovePose(grab_pos[0], grab_pos[1], grab_pos[2] + 20, grab_pos[3], grab_pos[4], grab_pos[5])
-        # Linearly moving down to grab the component and go back
-        self.robot.Delay(0.5)
-        self.robot.SetCartLinVel(self.SLOW_DOWN)
-        self.robot.MoveLin(*grab_pos)
-        self.robot.WaitIdle()
-        if is_grab:
-            self.smart_grab()
-        else:
-            self.smart_drop()
-        self.robot.Delay(0.2)
-        self.robot.MoveLin(grab_pos[0], grab_pos[1], grab_pos[2], grab_pos[3], grab_pos[4], grab_pos[5])
-        self.robot.Delay(0.5)
-        # Move the component back to home
-        self.robot.SetCartLinVel(self.LIN_SPEED)
-        self.move_home()
-        self.robot.WaitIdle()
-        
     def draw_square(self):
         """For development purpose only, don't use in production"""
         try:
@@ -153,13 +103,6 @@ class Meca500():
         except Exception as e:
             self.logger.info(f"Drawing square has an error: {e}")
 
-def meca500_example_app():
-    robot_address = "192.168.0.101"
-    user_provided_address = input(f"Please type in the IP address for the robot (the default is {robot_address}, press enter to use the default): ")
-    if user_provided_address != '':
-        robot_address = user_provided_address
-    meca500_robot = Meca500(robot_address=robot_address)
-    meca500_robot.initializeRobot()
-    meca500_robot.draw_square()
-    meca500_robot.move_home()
-    meca500_robot.exitRobot()
+def test_config_file_location():
+    file_path = Path(__file__).parent.parent / "configs" / "BreadBoardMeca500.yaml"
+    print(file_path)

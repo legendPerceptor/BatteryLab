@@ -1,0 +1,6 @@
+string command
+int32 volume
+---
+string status
+float32 float_result
+int32 int_result

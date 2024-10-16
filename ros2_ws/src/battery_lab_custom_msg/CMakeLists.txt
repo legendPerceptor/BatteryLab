@@ -12,6 +12,8 @@ find_package(sensor_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
+  "srv/SartoriusCtrl.srv"
+  "srv/SuctionPumpCtrl.srv"
   "srv/GetAbsRailPos.srv"
   "srv/MoveLinearRail.srv"
   "srv/CaptureImage.srv" DEPENDENCIES builtin_interfaces sensor_msgs

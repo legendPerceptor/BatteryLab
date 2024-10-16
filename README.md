@@ -3,7 +3,7 @@ We aim to build an autonomous laboratory for manufacturing coin-cell batteries. 
 
 <figure>
   <img
-  src="https://i.ibb.co/K9V3sTw/battery-lab-render.png"
+  src="figures/overview.PNG"
   alt="The BatteryLab Design">
   <figcaption>Figure 1. The physical design of the autonomous BatteryLab</figcaption>
 </figure>
@@ -39,11 +39,31 @@ colcon build
 
 You can ssh into each Raspberry Pi to launch each ROS 2 node or use the launch file we prepared for you.
 
-> Note that the launch file and the ROS 2 packages are still under development.
+> The launch file and the ROS 2 packages are still under development.
+
+Start all the necessary ROS 2 services by running the following commands on specified machines. Note that each of them should be run on different machines.
 
 ```bash
-ros2 launch battery_lab_bringup batterylab.launch.py
+# on the rail Raspberry Pi
+ros2 launch battery_lab_bringup rail_rasp.launch.py
+# on the board Raspberry Pi
+ros2 launch battery_lab_bringup board_rasp.launch.py
+# on the outside Raspberry Pi
+ros2 launch battery_lab_bringup out_rasp.launch.py
 ```
+
+Then you can start controlling the whole battery lab on any machines that supports ROS 2 and in the same network.
+
+```bash
+# to control the assembly robot
+ros2 run assembly_robot assembly_robot
+# to control the liquid handling robot
+ros2 run assembly_robot liquid_robot
+# to control the crimper robot
+ros2 run assembly_robot crimper_robot
+```
+
+We will develop a web-based UI for easier control with a graphical interface.
 
 ## Hardware Requirements
 
@@ -66,7 +86,7 @@ The assembly robot is a Meca500 on the linear rail. We have a self-designed adap
 
 <figure>
   <img
-  src="https://i.ibb.co/Wxvwwv4/Assembly-Robot.png"
+  src="figures/assembly_robot.png"
   alt="The Assembly Robot">
   <figcaption>Figure 2. The design of the assembly robot.</figcaption>
 </figure>
@@ -77,7 +97,7 @@ The liquid handling robot is a Dobot MG400. We mount the Sartorius liquid dispen
 
 <figure>
   <img
-  src="https://i.ibb.co/HDZSDJH/liquid-handling-MG400.png"
+  src="figures/liquid_robot.png"
   alt="The Liquid Handling Robot">
   <figcaption>Figure 3. The design of the liquid handling robot.</figcaption>
 </figure>
@@ -88,7 +108,7 @@ We use a second Meca500 to move the assembled battery to a crimper and then move
 
 <figure>
   <img
-  src="https://i.ibb.co/SRk1zkY/crimping-robot.png"
+  src="figures/crimper_robot.png"
   alt="The Crimping & Storage Robot">
   <figcaption>Figure 4. The design of the crimping & storage robot.</figcaption>
 </figure>

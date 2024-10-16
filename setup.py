@@ -8,4 +8,7 @@ setup(
     packages=find_packages(),  # Find packages in the src directory
     include_package_data=True,
     install_requires=[],
+    package_data={
+        'BatteryLab': ['BatteryLab/configs/*.yaml'],  # Include all .yaml config files
+    },
 )
