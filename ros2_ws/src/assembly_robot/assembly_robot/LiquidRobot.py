@@ -48,7 +48,7 @@ def manual_position_loop(liquid_robot: LiquidRobot):
         liquid_robot.MG400.movectl.MovJ(*parameters)
     
 
-def main_loop(liquidRobot :LiquidRobot):
+def liquid_robot_command_loop(liquidRobot :LiquidRobot):
     prompt="""Press [Enter] to quit, [0] to home the robot, [M] to drive to tip case/liquid case,
 [G] to get tip at tipcase case(x,y), [A] to get liquid at liquid case (x,y) with volume, [D] to return tip to tipcase (x,y),
 [R] to return liquid to liquidcase(x,y), [J] to dispense liquid with volume to the post.
@@ -110,7 +110,7 @@ def liquid_robot_example():
     if not ok:
         print("Failed to initialize the Liquid Robot, program aborted!")
         exit()
-    main_loop(liquid_robot)
+    liquid_robot_command_loop(liquid_robot)
 
 
 def main():

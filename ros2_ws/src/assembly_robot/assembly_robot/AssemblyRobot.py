@@ -42,6 +42,10 @@ class AssemblyRobot(Node):
             print("The Meca500 cannot be connected")
             exit()
 
+    def move_home_and_out_of_way(self):
+        self.rail_meca500.move_home(tool=RobotTool.SUCTION)
+        self.move_zaber_rail(0.0)
+
     def move_zaber_rail(self, rail_pos: float):
         self.logger.info(f"Assembly Robot Moving to {rail_pos}")
         future = self.zaber_rail.send_move_request(rail_pos)
@@ -122,6 +126,21 @@ class AssemblyRobot(Node):
             except yaml.YAMLError as e:
                 print("Cannot load the camera positions YAML file with error: ", e)
         self.assemblyRobotCameraConstants = create_assembly_robot_camera_constants_from_manual_positions(camera_manual_positions=camera_constant_positions)
+    
+    def auto_grab_a_component_to_assembly_post(self, component_name: str):
+        component = getattr(self.assemblyRobotConstants, component_name)
+        available_locations = list(component.keys())
+        # take a picutre of the component
+        tray_photo = self.take_a_tray_photo(component_name)
+        # TODO: deal with the photo to find available components
+        sublocation = available_locations[0] # the sublocation is default to 0 for now
+        location = component[sublocation]
+        auto_well_grab_pos = location.grabPo[0] # the grab well index is default to 0 for now
+        rail_position = location.railPo
+        # grab the decided component
+        self.grab_component(rail_position=rail_position, grab_position=auto_well_grab_pos, is_grab=True)
+        # move the component to the assembly post
+        self.grab_component(self.assemblyRobotConstants.POST_RAIL_LOCATION, self.assemblyRobotConstants.POST_C_SK_PO, is_grab=False)
 
     def drop_component(self, drop_po, component:Components, nr:int, auto_calib:bool=True, grab_check:bool=True, save_img:bool=True, show_image:bool=False):
         """Drop the component to the assembly pod"""
@@ -223,12 +242,7 @@ def get_component_location_from_user(robot, component_prompt):
     location = component[sub_location]
     return location.grabPo, location.railPo, sub_location
 
-def main():
-    rclpy.init()
-    log_path = "/home/yuanjian/Research/BatteryLab/logs"
-    logger = Logger("assembly_robot_test", log_path, "assembly_robot_test.log")
-    robot = AssemblyRobot(logger=logger, robot_address="192.168.0.100")
-    robot.initialize_and_home_robots()
+def assembly_robot_command_loop(robot: AssemblyRobot, image_path="/home/yuanjian/Research/BatteryLab/images"):
     prompt= """Press [Enter] to quit, [S] to test component suction,
 [M] to move a component to the assembly post, [C] to take a photo of the desired tray,
 [L] to grab a component and move to the lookup camera for a picture.
@@ -256,7 +270,7 @@ def main():
             component_name = input(component_prompt)
             image = robot.take_a_tray_photo(component_name)
             cur_time = datetime.now().strftime("%Y-%m-%d-%H-%M:%S")
-            image_file = str(Path(log_path) / f"ArmCam-{component_name}-{cur_time}.jpg")
+            image_file = str(Path(image_path) / f"ArmCam-{component_name}-{cur_time}.jpg")
             cv2.imwrite(image_file, image)
         elif input_str == 'M':
             grabpos, railpos, sub_location = get_component_location_from_user(robot, component_prompt)
@@ -276,11 +290,18 @@ def main():
             robot.grab_component(railpos, grabpos[index], is_grab=True)
             image = robot.take_a_look_up_photo()
             cur_time = datetime.now().strftime("$Y-%m-%d-%H-%M:%S")
-            image_file = str(Path(log_path) / f"Lookup-{component_name}-{cur_time}.jpg")
+            image_file = str(Path(image_path) / f"Lookup-{component_name}-{cur_time}.jpg")
             cv2.imwrite(image_file, image)
             robot.rail_meca500.move_home(tool=RobotTool.SUCTION)
             robot.grab_component(railpos, grabpos[index], is_grab=False)
 
+def main():
+    rclpy.init()
+    log_path = "/home/yuanjian/Research/BatteryLab/logs"
+    logger = Logger("assembly_robot_test", log_path, "assembly_robot_test.log")
+    robot = AssemblyRobot(logger=logger, robot_address="192.168.0.100")
+    robot.initialize_and_home_robots()
+    assembly_robot_command_loop(robot)
     robot.destroy_node()
     rclpy.shutdown()
 

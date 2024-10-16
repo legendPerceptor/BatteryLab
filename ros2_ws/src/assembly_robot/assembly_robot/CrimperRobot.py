@@ -56,13 +56,8 @@ class CrimperRobot(Node):
             return True
         else:
             return False
-
-def main():
-    rclpy.init()
-    log_path = "/home/yuanjian/Research/BatteryLab/logs"
-    logger = Logger("assembly_robot_test", log_path, "assembly_robot_test.log")
-    robot = CrimperRobot(logger, robot_address="192.168.0.101")
-    robot.initialize_and_home_robots()
+        
+def crimper_robot_command_loop(robot: CrimperRobot):
     prompt= """Press [Enter] to quit, [P] to pick up from the post,
 [C] to drop the battery to the crimper, [D] to pick the battery up from the crimper
 [S] to store the battery in the storage post. [A] to run the whole process
@@ -92,8 +87,15 @@ def main():
                 robot.crimp_a_battery(use_camera_check=False)
         else:
             print("The command you gave is not recognized!")
-    
     robot.crimper_robot.move_home(tool=RobotTool.GRIPPER)
+
+def main():
+    rclpy.init()
+    log_path = "/home/yuanjian/Research/BatteryLab/logs"
+    logger = Logger("assembly_robot_test", log_path, "assembly_robot_test.log")
+    robot = CrimperRobot(logger, robot_address="192.168.0.101")
+    robot.initialize_and_home_robots()
+    crimper_robot_command_loop(robot=robot)
     robot.exitRobot()
     robot.destroy_node()
     rclpy.shutdown()
