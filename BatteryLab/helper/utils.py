@@ -8,6 +8,7 @@ import numpy as np
 from typing import List
 from ..robots.Constants import AssemblyRobotConstants, ComponentProperty, AssemblyRobotCameraConstants
 from matplotlib import pyplot as plt
+import matplotlib
 
 class SupportedDevices(Enum):
     ZaberLinearRail = 1
@@ -103,6 +104,7 @@ def draw_calculated_points(pos_list, m, n, file_name:str = "generated_points"):
     project_dir = Path(__file__).parent.parent.parent / "images"
     os.makedirs(str(project_dir), exist_ok=True)
     plt.savefig(str(project_dir / (file_name + ".png")))
+    matplotlib.pyplot.close()
 
 def get_m_n_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left_coordinates, top_right_coordinates, m, n, name:str="default"):
     avg_height = np.average([bottom_left_coordinates[2], bottom_right_coordinates[2], top_left_coordinates[2], top_right_coordinates[2]])
@@ -295,7 +297,10 @@ Spacer:
             print(f"The component <{component_name}> is not in the well positions YAML file")
             continue
         component = manual_positions[component_name]
-
+        if component_name == 'Washer':
+          tool = 'gripper'
+        else:
+          tool = 'suction'  
         sub_locations = ["bottom_right_box", "bottom_left_box", "top_left_box", "top_right_box"]
         component_property_dict = {}
         for sub_location in sub_locations:
@@ -305,11 +310,14 @@ Spacer:
                 continue
             component_property = ComponentProperty()
             component_property.railPo = component_sub_loc[rail_pos_prop]
-            component_property.dropPo = assemble_post[cartesian_coord_prop]
+            if tool == 'suction':
+              component_property.dropPo = assemble_post['suction'][cartesian_coord_prop]
+            else:
+              component_property.dropPo = assemble_post['gripper'][cartesian_coord_prop]
             m = 4
             n = 4
             if "shape" in component_sub_loc:
-                m, n = list(component_sub_loc["shape"])
+                n, m = list(component_sub_loc["shape"])
             bottom_left_coordinates = component_sub_loc[bottom_left_prop][cartesian_coord_prop]
             bottom_right_coordinates = component_sub_loc[bottom_right_prop][cartesian_coord_prop]
             top_left_coordinates = component_sub_loc[top_left_prop][cartesian_coord_prop]
