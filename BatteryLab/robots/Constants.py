@@ -11,7 +11,7 @@ class Meca500RobotConstants(BaseModel):
     GRIP_VEL: int = 20
     L_VEL: int = 10
     J_VEL: int = 10
-    TCP_GP: List[float] = [0, 0, 0, 0, 0, 0]
+    TCP_GP: List[float] = [60.0, 0, 0, 0, 0, 0]
     TCP_SK: List[float] = [0, 0, 0, 0, 0, 0]
     TCP_CA: List[float] = [0, 0, 0, 0, 0, 0]
     HOME_GP_J: List[float] = [0, 0, 0, 0, 0, 0]
@@ -78,9 +78,12 @@ class AssemblyRobotConstants():
     def __init__(self):
         self.HOME_J = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.TRF = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.GripperTRF = [60, 0, 0, 0, 0, 0]
         self.POST_C_SK_PO: List[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.POST_C_GRIPPER_PO: List[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.POST_RAIL_LOCATION: float = 100.0
         self.LOOKUP_CAM_SK_PO: List[float] = [0, 0, 0, 0, 0, 0]
+        self.LOOKUP_CAM_GRIPPER_PO: List[float] = [0, 0, 0, 0, 0, 0]
         self.LOOKUP_CAM_RAIL_LOCATION: float = 100.0
         self.CathodeCase: dict = {}
         self.Cathode: dict = {}

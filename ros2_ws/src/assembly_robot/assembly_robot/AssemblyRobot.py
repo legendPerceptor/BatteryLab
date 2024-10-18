@@ -96,13 +96,17 @@ class AssemblyRobot(Node):
         # self.arm_camera_client.display_image()
         return self.arm_camera_client.get_image()
 
-    def grab_component(self, rail_position, grab_position, is_grab=True):
+    def grab_component(self, rail_position, grab_position, is_grab=True, component_name="suction"):
         """Grab a component for battery or return it to the tray.
         This requires a cooperation between the rail and the Meca500 robotic arm on top of it.
         """
         # Move home based on the tooling
-        self.rail_meca500.change_tool(tool_name=RobotTool.SUCTION)
-        self.rail_meca500.move_home(tool=RobotTool.SUCTION)
+        if component_name == 'Washer':
+            self.rail_meca500.change_tool(tool_name=RobotTool.GRIPPER)
+            self.rail_meca500.move_home(tool=RobotTool.GRIPPER)
+        else:
+            self.rail_meca500.change_tool(tool_name=RobotTool.SUCTION)
+            self.rail_meca500.move_home(tool=RobotTool.SUCTION)
         
         # Move the Zaber Rail
         self.move_zaber_rail(rail_position)
@@ -138,95 +142,14 @@ class AssemblyRobot(Node):
         auto_well_grab_pos = location.grabPo[0] # the grab well index is default to 0 for now
         rail_position = location.railPo
         # grab the decided component
-        self.grab_component(rail_position=rail_position, grab_position=auto_well_grab_pos, is_grab=True)
+        self.grab_component(rail_position=rail_position, grab_position=auto_well_grab_pos, is_grab=True, component_name=component_name)
         # move the component to the assembly post
-        self.grab_component(self.assemblyRobotConstants.POST_RAIL_LOCATION, self.assemblyRobotConstants.POST_C_SK_PO, is_grab=False)
+        self.grab_component(self.assemblyRobotConstants.POST_RAIL_LOCATION, self.assemblyRobotConstants.POST_C_SK_PO, is_grab=False, component_name=component_name)
 
     def drop_component(self, drop_po, component:Components, nr:int, auto_calib:bool=True, grab_check:bool=True, save_img:bool=True, show_image:bool=False):
-        """Drop the component to the assembly pod"""
-        drop_pos = np.array(drop_po, dtype=np.float32)
-        if component != Components.Washer:
-            drop_po[:2] = self.assemblyRobotConstants.POST_C_SK_PO[:2]
-        
-        # move the robot to the post location
-        self.zaber_rail.send_move_request(self.assemblyRobotConstants.POST_RAIL_LOCATION)
-
-        # component_set excludes the Anode_case and Spring
-        # TODO: Why exclude the Anode_case?
-        component_set = set(Components.Anode_Spacer, Components.Anode, Components.Separator, Components.Cathode, Components.Cathode_Spacer, Components.Cathode_Case)
-        if component in component_set and auto_calib:
-            self.rail_meca500.move_for_snapshot()
-            self.logger.info(f"checking alignment on {component.name}'s grab")
-            correction, self.grabYes = self.auto_correction.run_autocorrection(state=AssemblySteps.Grab, component=component, nr=nr, show_image=show_image, save_img=save_img)
-            if self.grabYes:
-                drop_po = drop_po + correction
-                self.logger.info("Implementing auto correction...")
-            elif grab_check:
-                self.logger.info(f"Trying to grab {component.name} for the second time...")
-                self.zaber_rail.send_move_request(0) # move home
-                self.rail_meca500.move_home()
-                component_property: ComponentProperty = getattr(self.assemblyRobotConstants, component.name)
-                self.grab_component(component_property.railPo[nr-1], component_property.grabPo[nr])
-                self.zaber_rail.send_move_request(self.assemblyRobotConstants.POST_RAIL_LOCATION)
-                self.rail_meca500.move_for_snapshot()
-                correction, self.grabYes = self.auto_correction.run_autocorrection(state=AssemblySteps.Grab, component=component, nr=nr, show_image=show_image, save_img=save_img)
-                if self.grabYes:
-                    drop_po = drop_po + correction
-                    self.logger.info("Implementing auto correction...")
-                else:
-                    self.logger.info(f"No {component.name} detected! Manual check on tray {component.name}_No.[{nr}] required!")
-                    # Move the meca500 robotic arm home
-                    self.rail_meca500.move_home()
-                    self.zaber_rail.send_move_request(0)
-                    manual_ok = input(f"Make sure vacuum pump is on and {component.name} is on the tray NO.[{nr}], then type in 'ok' and Enter!")
-                    if manual_ok == 'ok':
-                        self.grab_component(component_property.railPo[nr-1], component_property.grabPo[nr])
-                        self.zaber_rail.send_move_request(self.assemblyRobotConstants.POST_RAIL_LOCATION)
-                        self.rail_meca500.move_for_snapshot()
-                        correction, self.grabYes = self.auto_correction.run_autocorrection(state=AssemblySteps.Grab, component=component, nr=nr, show_image=show_image, save_img=save_img)
-                        drop_po = drop_po + correction
-                    else:
-                        # TODO: suction_off
-                        self.userInterupt = True
-                        return False
-        
-        self.logger.debug(f"Dropping on rail dropping position: {drop_po}...")
-        self.rail_meca500.robot.MovePose(drop_po[0], drop_po[1], 100, drop_po[3], drop_po[4], drop_po[5])
-        self.rail_meca500.robot.Delay(0.5)
-        self.rail_meca500.robot.SetCartLinVel(self.SLOW_DOWN)
-        self.rail_meca500.robot.MoveLin(*drop_po)
-        self.rail_meca500.robot.Delay(0.5)
-        if component == Components.Cathode_Case:
-            self.rail_meca500.robot.SetCartAngVel(5)
-            self.rail_meca500.robot.MoveLinRelWRF(0,-0.3,0.5,0,0,0)
-            self.rail_meca500.robot.MoveLinRelWRF(0,0,0,2,0,0)
-            self.rail_meca500.robot.MoveLinRelWRF(0,0,-1.5,0,0,0)
-            self.rail_meca500.robot.MoveLinRelWRF(0,0,0,-2,0,0)
-            self.rail_meca500.smart_drop()
-            self.rail_meca500.robot.SetCartAngVel(45)
-            self.rail_meca500.robot.MoveLinRelWRF(0,0,30,0,0,0)
-            # TODO: Tap Press
-            self.rail_meca500.move_after_drop()
-        
-        elif component in (Components.Anode, Components.Separator, Components.Cathode): # Electordes
-            self.rail_meca500.robot.SetCartAngVel(90)
-            self.rail_meca500.smart_drop()
-            if auto_calib:
-                self.rail_meca500.robot.MoveLinRelWRF(0,0,10,0,0,0)
-                self.rail_meca500.robot.SetCartAngVel(45)
-                # Taking a snap shot
-                self.rail_meca500.move_for_snapshot()
-                # Do the auto correction in Assmebly Robot class
-                self.auto_correction.run_autocorrection(state=AssemblySteps.Drop, component=component, nr=nr, save_img=save_img)
-            self.rail_meca500.robot.MoveLinRelWRF(0, 0, 30, 0, 0, 0)
-            self.rail_meca500.move_after_drop()
-        else:
-            self.rail_meca500.smart_drop()
-            self.rail_meca500.robot.MoveLinRelWRF(0,0,30,0,0,0)
-            self.rail_meca500.move_after_drop()
-
-        # self.status["Progress"]["LastStep"] = AssemblySteps.Drop
-        return True
+        """Drop the component to the assembly post with autocorrection"""
+        # TODO: add autocorrection on top of grab_component
+        pass
 
 def get_component_location_from_user(robot, component_prompt):
     component_name = input(component_prompt)
@@ -240,7 +163,7 @@ def get_component_location_from_user(robot, component_prompt):
         print("The sublocation you pick is not valid!")
         exit()
     location = component[sub_location]
-    return location.grabPo, location.railPo, sub_location
+    return location.grabPo, location.railPo, sub_location, component_name
 
 def assembly_robot_command_loop(robot: AssemblyRobot, image_path="/home/yuanjian/Research/BatteryLab/images"):
     prompt= """Press [Enter] to quit, [S] to test component suction,
@@ -257,15 +180,16 @@ def assembly_robot_command_loop(robot: AssemblyRobot, image_path="/home/yuanjian
         if input_str == '':
             break
         elif input_str == 'S':
-            grabpos, railpos, sub_location = get_component_location_from_user(robot, component_prompt)
-            test_range = [0, 3, 12, 15]
+            grabpos, railpos, sub_location, component_name = get_component_location_from_user(robot, component_prompt)
+            step = len(grabpos) / 4
+            test_range = [0, step, 2*step, 3*step]
             test_all = input(f"Do you want to test the four corners or test all? (all/corners) default is corners:")
             if test_all == "all":
                 test_range = range(0, len(grabpos))
             for i in test_range:
                 print(f"reaching the position of well {i}: {grabpos[i]}")
-                robot.grab_component(railpos, grabpos[i], is_grab=True)
-                robot.grab_component(railpos, grabpos[i], is_grab=False)
+                robot.grab_component(railpos, grabpos[i], is_grab=True, component_name=component_name)
+                robot.grab_component(railpos, grabpos[i], is_grab=False, component_name=component_name)
         elif input_str == 'C':
             component_name = input(component_prompt)
             image = robot.take_a_tray_photo(component_name)
@@ -273,27 +197,30 @@ def assembly_robot_command_loop(robot: AssemblyRobot, image_path="/home/yuanjian
             image_file = str(Path(image_path) / f"ArmCam-{component_name}-{cur_time}.jpg")
             cv2.imwrite(image_file, image)
         elif input_str == 'M':
-            grabpos, railpos, sub_location = get_component_location_from_user(robot, component_prompt)
+            grabpos, railpos, sub_location, component_name = get_component_location_from_user(robot, component_prompt)
             index = int(input(f"which index do you want the robot to reach for {sub_location}, range [0, {len(grabpos)}):"))
             if index >=0 and index < len(grabpos):
-                robot.grab_component(railpos, grabpos[index], is_grab=True)
-                robot.grab_component(robot.assemblyRobotConstants.POST_RAIL_LOCATION, robot.assemblyRobotConstants.POST_C_SK_PO, is_grab=False)
+                robot.grab_component(railpos, grabpos[index], is_grab=True, component_name=component_name)
+                if component_name == 'Washer':
+                    pass
+                else:
+                    robot.grab_component(robot.assemblyRobotConstants.POST_RAIL_LOCATION, robot.assemblyRobotConstants.POST_C_SK_PO, is_grab=False, component_name=component_name)
             else:
                 print("The index you give is not valid for the robot to grab!")
                 continue
         elif input_str == 'L':
-            grabpos, railpos, sub_location = get_component_location_from_user(robot, component_prompt)
+            grabpos, railpos, sub_location, component_name = get_component_location_from_user(robot, component_prompt)
             index = int(input(f"which index do you want the robot to reach for {sub_location}, range [0, {len(grabpos)}):"))
             if not (index >=0 and index < len(grabpos)):
                 print("The index you give is not valid for the robot to grab!")
                 continue
-            robot.grab_component(railpos, grabpos[index], is_grab=True)
+            robot.grab_component(railpos, grabpos[index], is_grab=True, component_name=component_name)
             image = robot.take_a_look_up_photo()
             cur_time = datetime.now().strftime("$Y-%m-%d-%H-%M:%S")
             image_file = str(Path(image_path) / f"Lookup-{component_name}-{cur_time}.jpg")
             cv2.imwrite(image_file, image)
             robot.rail_meca500.move_home(tool=RobotTool.SUCTION)
-            robot.grab_component(railpos, grabpos[index], is_grab=False)
+            robot.grab_component(railpos, grabpos[index], is_grab=False, component_name=component_name)
 
 def main():
     rclpy.init()

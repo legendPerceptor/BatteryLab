@@ -99,6 +99,7 @@ def draw_calculated_points(pos_list, m, n, file_name:str = "generated_points"):
     plt.title(file_name)
     # Display the grid and axes
     plt.grid(True)
+    plt.axis('equal')
     project_dir = Path(__file__).parent.parent.parent / "images"
     os.makedirs(str(project_dir), exist_ok=True)
     plt.savefig(str(project_dir / (file_name + ".png")))
@@ -277,12 +278,14 @@ Spacer:
     top_right_prop = "top_right"
 
     assemble_post = manual_positions["AssemblePost"]
-    constants.POST_C_SK_PO = assemble_post[cartesian_coord_prop]
+    constants.POST_C_SK_PO = assemble_post['suction'][cartesian_coord_prop]
     constants.POST_RAIL_LOCATION = assemble_post[rail_pos_prop]
+    constants.POST_C_GRIPPER_PO = assemble_post['gripper'][cartesian_coord_prop]
 
     lookup_camera = manual_positions["LookupCamera"]
-    constants.LOOKUP_CAM_SK_PO = lookup_camera[cartesian_coord_prop]
+    constants.LOOKUP_CAM_SK_PO = lookup_camera['suction'][cartesian_coord_prop]
     constants.LOOKUP_CAM_RAIL_LOCATION = lookup_camera[rail_pos_prop]
+    constants.LOOKUP_CAM_GRIPPER_PO = lookup_camera['gripper'][cartesian_coord_prop]
 
     components = ["CathodeCase", "Cathode", "Separator", "Anode", "Washer", "Spacer", "AnodeCase"]
 
@@ -303,11 +306,15 @@ Spacer:
             component_property = ComponentProperty()
             component_property.railPo = component_sub_loc[rail_pos_prop]
             component_property.dropPo = assemble_post[cartesian_coord_prop]
+            m = 4
+            n = 4
+            if "shape" in component_sub_loc:
+                m, n = list(component_sub_loc["shape"])
             bottom_left_coordinates = component_sub_loc[bottom_left_prop][cartesian_coord_prop]
             bottom_right_coordinates = component_sub_loc[bottom_right_prop][cartesian_coord_prop]
             top_left_coordinates = component_sub_loc[top_left_prop][cartesian_coord_prop]
             top_right_coordinates = component_sub_loc[top_right_prop][cartesian_coord_prop]
-            component_property.grabPo = get_m_n_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left_coordinates, top_right_coordinates, 4, 4)
+            component_property.grabPo = get_m_n_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left_coordinates, top_right_coordinates, m, n, f"{component_name}-{sub_location}")
             component_property_dict[sub_location] = component_property
         setattr(constants, component_name, component_property_dict)
         print(f"Finished Dealing with component <{component_name}>")

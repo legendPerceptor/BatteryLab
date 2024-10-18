@@ -31,6 +31,7 @@ class RailMeca500(Meca500):
 
     def smart_grab(self):
         if self.tool == RobotTool.GRIPPER:
+            self.robot.SetGripperForce(5)
             self.robot.GripperClose()
             self.robot.WaitGripperMoveCompletion()
         elif self.tool == RobotTool.SUCTION:
@@ -38,6 +39,7 @@ class RailMeca500(Meca500):
     
     def smart_drop(self):
         if self.tool == RobotTool.GRIPPER:
+            self.robot.SetGripperForce(5)
             self.robot.GripperOpen()
             self.robot.WaitGripperMoveCompletion()
         elif self.tool== RobotTool.SUCTION:
