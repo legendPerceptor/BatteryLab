@@ -65,6 +65,15 @@ class RailMeca500(Meca500):
         self.robot.SetCartLinVel(self.RobotConstants.L_VEL)
         self.move_home(tool=self.tool)
         self.robot.WaitIdle()
+    
+    def move_to_pick_position(self, grab_pos, level: float = 1):
+        if level > 1 or level < 0:
+            self.logger.error("The pick position level has to be a number in the range [0, 1]")
+            return
+        self.logger.info(f"Moving to component at {grab_pos} for manual adjustment.")
+        self.robot.SetJointVel(self.RobotConstants.J_VEL)
+        self.robot.MovePose(grab_pos[0], grab_pos[1], grab_pos[2] + 30 * level, grab_pos[3], grab_pos[4], grab_pos[5])
+        self.robot.WaitIdle()
 
 def rail_meca500_example_app():
     robot_address = "192.168.0.100"

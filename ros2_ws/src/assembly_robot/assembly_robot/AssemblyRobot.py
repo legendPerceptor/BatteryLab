@@ -114,6 +114,21 @@ class AssemblyRobot(Node):
         self.logger.debug(f"Assembly Robot will start picking soon.")
         # Let Meca500 pick up the component and move it home
         self.rail_meca500.pick_place(grab_position, is_grab=is_grab)
+
+    def manual_adjustment(self, rail_position, grab_position, level:float = 1, component_name="suction"):
+        """Move the robot arm close to the tray for manual adjustment."""
+        # Move home based on the tooling
+        if component_name == 'Washer':
+            self.rail_meca500.change_tool(tool_name=RobotTool.GRIPPER)
+            self.rail_meca500.move_home()
+        else:
+            self.rail_meca500.change_tool(tool_name=RobotTool.SUCTION)
+            self.rail_meca500.move_home()
+        
+        # Move the Zaber Rail
+        self.move_zaber_rail(rail_position)
+        self.logger.debug(f"Assembly Robot will move for manual adjustment soon.")
+        self.rail_meca500.move_to_pick_position(grab_position, level=level)
     
     def load_position_files(self):
         position_file = Path(get_package_share_path("assembly_robot")) / "yaml" / "well_positions.yaml"
@@ -168,7 +183,7 @@ def get_component_location_from_user(robot, component_prompt):
 
 def get_location_index_from_user(shape, sub_location):
     assert(len(shape) == 2)
-    index = input(f"which index do you want the robot to reach for {sub_location}, range [0, {shape[0] * shape[1]}), you can also provide a location [x, y]:")
+    index = input(f"The shape of the sub_location is {shape}.\nwhich index do you want the robot to reach for {sub_location}, range [0, {shape[0] * shape[1]}), you can also provide a location [x, y]:")
     try:
         index = int(index)
     except ValueError as e:
@@ -177,9 +192,12 @@ def get_location_index_from_user(shape, sub_location):
     return index
 
 def assembly_robot_command_loop(robot: AssemblyRobot, image_path="/home/yuanjian/Research/BatteryLab/images/anode_case_photos"):
-    prompt= """Press [Enter] to quit, [S] to test component suction,
+    prompt= """Press [Enter] to quit.
+[S] to test component pick up (universal for suction/gripper),
+[G] to pick up/put back a component from a user defined well,
 [M] to move a component to the assembly post, [C] to take a photo of the desired tray,
 [L] to grab a component and move to the lookup camera for a picture.
+[Z] to move to a component well for manual adjustment.
 :> """
 
     component_prompt = """Which type of component do you want to test? Choose from the following
@@ -191,6 +209,7 @@ def assembly_robot_command_loop(robot: AssemblyRobot, image_path="/home/yuanjian
         if input_str == '':
             break
         elif input_str == 'S':
+            # Test the components pick-up and put them back
             shape, grabpos, railpos, sub_location, component_name = get_component_location_from_user(robot, component_prompt)
             test_range = [0, shape[1] - 1, (shape[0] - 1) * shape[1] , len(grabpos) - 1]
             print("The test range: []")
@@ -202,12 +221,14 @@ def assembly_robot_command_loop(robot: AssemblyRobot, image_path="/home/yuanjian
                 robot.grab_component(railpos, grabpos[i], is_grab=True, component_name=component_name)
                 robot.grab_component(railpos, grabpos[i], is_grab=False, component_name=component_name)
         elif input_str == 'C':
+            # Take a photo of the selected tray
             component_name = input(component_prompt)
             image = robot.take_a_tray_photo(component_name)
             cur_time = datetime.now().strftime("%Y-%m-%d-%H-%M:%S")
             image_file = str(Path(image_path) / f"ArmCam-{component_name}-{cur_time}.jpg")
             cv2.imwrite(image_file, image)
         elif input_str == 'M':
+            # Move the component to the assembly post
             shape, grabpos, railpos, sub_location, component_name = get_component_location_from_user(robot, component_prompt)
             index = get_location_index_from_user(shape, sub_location)
             if index >=0 and index < len(grabpos):
@@ -219,7 +240,34 @@ def assembly_robot_command_loop(robot: AssemblyRobot, image_path="/home/yuanjian
             else:
                 print("The index you give is not valid for the robot to grab!")
                 continue
+        elif input_str == 'G':
+            # Grab a compoent or put it back
+            shape, grabpos, railpos, sub_location, component_name = get_component_location_from_user(robot, component_prompt)
+            index = get_location_index_from_user(shape, sub_location)
+            if not (index >= 0 and index < len(grabpos)):
+                print("The index you give is not valid for the robot to grab!")
+                continue
+            is_grab_input = input("Do you want to grab it or put it back? (grab/put):")
+            if is_grab_input == 'grab':
+                is_grab = True
+            else:
+                is_grab = False
+            robot.grab_component(railpos, grabpos[index], is_grab=is_grab, component_name=component_name)
+
+        elif input_str == 'Z':
+            # Manual adjustment for well positions.
+            shape, grabpos, railpos, sub_location, component_name = get_component_location_from_user(robot, component_prompt)
+            index = get_location_index_from_user(shape, sub_location)
+            if not (index >= 0 and index < len(grabpos)):
+                print("The index you give is not valid to do manual adjustment!")
+                continue
+            level = float(input("Please provide the level you want the manual adjustment to be (1 is highest, and 0 is closest to the tray):"))
+            robot.manual_adjustment(railpos, grabpos, level)
+            finished = input("Have you finished adjusting? Press Enter to move up and home the robot:")
+            robot.manual_adjustment(railpos, grabpos, 1)
+            robot.rail_meca500.move_home()
         elif input_str == 'L':
+            # Move a component to the lookup camera for a picture
             shape, grabpos, railpos, sub_location, component_name = get_component_location_from_user(robot, component_prompt)
             index = get_location_index_from_user(shape, sub_location)
             if not (index >=0 and index < len(grabpos)):
@@ -235,11 +283,11 @@ def assembly_robot_command_loop(robot: AssemblyRobot, image_path="/home/yuanjian
 
 def main():
     rclpy.init()
-    log_path = "/home/yuanjian/Research/BatteryLab/logs"
-    logger = Logger("assembly_robot_test", log_path, "assembly_robot_test.log")
-    robot = AssemblyRobot(logger=logger, robot_address="192.168.0.100")
+    # log_path = "/home/yuanjian/Research/BatteryLab/logs"
+    # logger = Logger("assembly_robot_test", log_path, "assembly_robot_test.log")
+    robot = AssemblyRobot(logger=None, robot_address="192.168.0.100")
     robot.initialize_and_home_robots()
-    image_path = Path("/home/yuanjian/Research/BatteryLab/images/anode_case_photos")
+    image_path = Path("/home/yuanjian/Research/BatteryLab/images/")
     image_path.mkdir(exist_ok=True)
     assembly_robot_command_loop(robot, image_path=str(image_path))
     robot.destroy_node()
