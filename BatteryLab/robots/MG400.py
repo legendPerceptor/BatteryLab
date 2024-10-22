@@ -142,6 +142,7 @@ class MG400():
         self.sartorius_rline.dispense(volume)
         self.movectl.MovL(*self.assembly_pose_up)
         self.movectl.Sync()
+        self.move_home()
 
     def get_tip_index(self, x, y):
         return x * self.tip_n + y

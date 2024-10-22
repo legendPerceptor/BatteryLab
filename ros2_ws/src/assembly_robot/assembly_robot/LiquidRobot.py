@@ -91,6 +91,8 @@ def liquid_robot_command_loop(liquidRobot :LiquidRobot):
             elif input_str == 'J':
                 volume = int(input("Please input volume:").strip())
                 liquidRobot.MG400.add_liquid_to_post(volume)
+            elif input_str == 'S':
+                liquidRobot.MG400.move_to_assemble_post()
             elif input_str == 'A':
                 x = int(input("Please input liquid bottle index x:").strip())
                 y = int(input("Please input liquid bottle index y:").strip())
