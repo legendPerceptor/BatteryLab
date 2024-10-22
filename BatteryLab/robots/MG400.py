@@ -55,7 +55,12 @@ class MG400():
         return True
 
     def disconnect(self):
+        self.logger.info("Disconnecting the MG400 robot and close all the serial ports...")
         self.dashboard.DisableRobot()
+        self.dashboard.close()
+        self.movectl.close()
+        self.feed.close()
+        self.logger.info("MG400 has been disabled and all ports are closed.")
 
     def move_home(self):
         self.logger.debug("The MG400 is homing itself!")

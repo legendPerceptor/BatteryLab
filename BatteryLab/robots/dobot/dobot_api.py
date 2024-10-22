@@ -136,7 +136,7 @@ class DobotApi:
             self.log(f"Send to {self.ip}:{self.port}: {string}")
             self.socket_dobot.send(str.encode(string, 'utf-8'))
         except Exception as e:
-            print(e)
+            print("Dobot API Send Error:", e)
 
     def wait_reply(self):
         """
@@ -146,7 +146,7 @@ class DobotApi:
         try:
             data = self.socket_dobot.recv(1024)
         except Exception as e:
-            print(e)
+            print("Dobot API Response Error:", e)
 
         finally:
             if len(data) == 0:
