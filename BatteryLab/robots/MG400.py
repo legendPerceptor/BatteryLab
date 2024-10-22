@@ -69,78 +69,78 @@ class MG400():
         down_pos = self.tip_poses_down[self.get_tip_index(x, y)]
         move_pos = [down_pos[0], down_pos[1], (up_pos[2]-down_pos[2]) * level + down_pos[2], down_pos[3]]
         self.movectl.MovJ(*up_pos)
-        self.dashboard.wait()
+        self.movectl.Sync()
         if level < 1:
             self.movectl.MovL(*move_pos)
-            self.dashboard.wait()
+            self.movectl.Sync()
         self.logger.info(f"finished moving to tipcase at ({x}, {y}).")
 
     def get_tip(self, x, y):
         self.move_to_tip_case(x, y)
         self.dashboard.SpeedL(3)
         self.movectl.MovL(*self.tip_poses_down[self.get_tip_index(x, y)])
-        self.dashboard.wait()
+        self.movectl.Sync()
         self.movectl.MovL(*self.tip_poses_up[self.get_tip_index(x, y)])
-        self.dashboard.wait()
+        self.movectl.Sync()
         self.sartorius_rline.aspirate(10)
         time.sleep(3)
         self.logger.info(f"finished getting the tip at ({x}, {y}).")
 
     def drop_tip(self, x, y):
         self.move_to_tip_case(x, y, 0.4)
-        self.dashboard.wait()
+        self.movectl.Sync()
         time.sleep(1)
         self.sartorius_rline.eject_and_home()
         self.move_to_tip_case(x, y)
-        self.dashboard.wait()
+        self.movectl.Sync()
         self.logger.info(f"The tip should have been ejected")
 
     def move_to_assemble_post(self):
         self.dashboard.SpeedJ(10)
         self.movectl.JointMovJ(-90, 0, 0, 0)
-        self.dashboard.wait()
+        self.movectl.Sync()
         time.sleep(1) # TODO: wait for the robot to be idle
         self.movectl.MovJ(*self.assembly_pose_up)
-        self.dashboard.wait()
+        self.movectl.Sync()
         time.sleep(1) # TODO: wait for the robot to move to the assembly post
 
     def move_to_liquid(self, x, y):
         self.dashboard.Tool(index=0)
         self.dashboard.SpeedJ(10)
         self.movectl.MovJ(*self.liquid_poses_up[self.get_liquid_index(x, y)])
-        self.dashboard.wait()
+        self.movectl.Sync()
         self.logger.info(f"finished moving for liquid bottle ({x}, {y}).")
 
     def get_liquid(self, x, y, volume):
         self.move_to_liquid(x, y)
         self.dashboard.SpeedL(3)
         self.movectl.MovL(*self.liquid_poses_down[self.get_liquid_index(x,y)])
-        self.dashboard.wait()
+        self.movectl.Sync()
         time.sleep(3)
         # TODO: level sensing and ensure the liquid is enough
         # self.logger.info(f"The current liquid level: {self.sartorius_rline.tellLevel()}")
         self.sartorius_rline.aspirate(volume)
         time.sleep(3)
         self.movectl.MovL(*self.liquid_poses_up[self.get_liquid_index(x, y)])
-        self.dashboard.wait()
+        self.movectl.Sync()
         time.sleep(3)
 
     def return_liquid(self, x, y):
         self.move_to_liquid(x, y)
         self.dashboard.SpeedL(3)
         self.movectl.MovL(*self.liquid_poses_down[self.get_liquid_index(x, y)])
-        self.dashboard.wait()
+        self.movectl.Sync()
         self.sartorius_rline.blowout()
 
     def add_liquid_to_post(self, volume):
         self.move_to_assemble_post()
         self.dashboard.SpeedL(3)
         self.movectl.MovL(*self.assembly_pose_down)
-        self.dashboard.wait()
+        self.movectl.Sync()
         self.sartorius_rline.dispense(volume)
         time.sleep(5)
         self.movectl.MovL(*self.assembly_pose_up)
-        self.dashboard.wait()
+        self.movectl.Sync()
 
     def get_tip_index(self, x, y):
         return x * self.tip_n + y
