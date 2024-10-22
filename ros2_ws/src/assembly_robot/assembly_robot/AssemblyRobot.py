@@ -165,7 +165,7 @@ def get_component_location_from_user(robot, component_prompt):
     location = component[sub_location]
     return location.grabPo, location.railPo, sub_location, component_name
 
-def assembly_robot_command_loop(robot: AssemblyRobot, image_path="/home/yuanjian/Research/BatteryLab/images"):
+def assembly_robot_command_loop(robot: AssemblyRobot, image_path="/home/yuanjian/Research/BatteryLab/images/anode_case_photos"):
     prompt= """Press [Enter] to quit, [S] to test component suction,
 [M] to move a component to the assembly post, [C] to take a photo of the desired tray,
 [L] to grab a component and move to the lookup camera for a picture.
@@ -228,7 +228,9 @@ def main():
     logger = Logger("assembly_robot_test", log_path, "assembly_robot_test.log")
     robot = AssemblyRobot(logger=logger, robot_address="192.168.0.100")
     robot.initialize_and_home_robots()
-    assembly_robot_command_loop(robot)
+    image_path = Path("/home/yuanjian/Research/BatteryLab/images/anode_case_photos")
+    image_path.mkdir(exist_ok=True)
+    assembly_robot_command_loop(robot, image_path=str(image_path))
     robot.destroy_node()
     rclpy.shutdown()
 
