@@ -193,11 +193,13 @@ def get_location_index_from_user(shape, sub_location):
 
 def assembly_robot_command_loop(robot: AssemblyRobot, image_path="/home/yuanjian/Research/BatteryLab/images/anode_case_photos"):
     prompt= """Press [Enter] to quit.
-[S] to test component pick up (universal for suction/gripper),
-[G] to pick up/put back a component from a user defined well,
-[M] to move a component to the assembly post, [C] to take a photo of the desired tray,
+[S] to test component pick up (universal for suction/gripper).
+[G] to pick up/put back a component from a user defined well.
+[M] to move a component to the assembly post.
+[C] to take a photo of the desired tray.
 [L] to grab a component and move to the lookup camera for a picture.
 [Z] to move to a component well for manual adjustment.
+[0] to move the assembly robot out of the way
 :> """
 
     component_prompt = """Which type of component do you want to test? Choose from the following
@@ -208,6 +210,9 @@ def assembly_robot_command_loop(robot: AssemblyRobot, image_path="/home/yuanjian
         input_str = input(prompt).strip().upper()
         if input_str == '':
             break
+        elif input_str == '0':
+            # Move the assembly robot out of the way to rail_pos 0.0
+            robot.move_home_and_out_of_way()
         elif input_str == 'S':
             # Test the components pick-up and put them back
             shape, grabpos, railpos, sub_location, component_name = get_component_location_from_user(robot, component_prompt)
