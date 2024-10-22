@@ -132,10 +132,10 @@ class SartoriusRLine(SartoriusRLineInterface):
             print("Error code unrecognized!")
     
     def waitAck(self, ans):
-        char = self.port.read(1)
+        char = self.serial.read(1)
         answer = str(char)
         while(char):
-            char = self.port.read(1)
+            char = self.serial.read(1)
             answer += str(char)
         self.logger.debug(answer)
         if ans in answer:

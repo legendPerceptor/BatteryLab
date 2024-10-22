@@ -58,7 +58,10 @@ class MG400():
         self.dashboard.DisableRobot()
 
     def move_home(self):
+        self.logger.debug("The MG400 is homing itself!")
         self.movectl.JointMovJ(*self.home)
+        self.movectl.Sync()
+        self.logger.debug("The MG400 has been homed!")
 
     def move_to_tip_case(self, x, y, level = 1):
         # The level is a percentage of the height, 0 will be at the down pos, 1 will be at the up pos
@@ -83,26 +86,24 @@ class MG400():
         self.movectl.MovL(*self.tip_poses_up[self.get_tip_index(x, y)])
         self.movectl.Sync()
         self.sartorius_rline.aspirate(10)
-        time.sleep(3)
         self.logger.info(f"finished getting the tip at ({x}, {y}).")
+        self.move_home()
 
     def drop_tip(self, x, y):
         self.move_to_tip_case(x, y, 0.4)
         self.movectl.Sync()
-        time.sleep(1)
         self.sartorius_rline.eject_and_home()
         self.move_to_tip_case(x, y)
         self.movectl.Sync()
         self.logger.info(f"The tip should have been ejected")
+        self.move_home()
 
     def move_to_assemble_post(self):
         self.dashboard.SpeedJ(10)
         self.movectl.JointMovJ(-90, 0, 0, 0)
         self.movectl.Sync()
-        time.sleep(1) # TODO: wait for the robot to be idle
         self.movectl.MovJ(*self.assembly_pose_up)
         self.movectl.Sync()
-        time.sleep(1) # TODO: wait for the robot to move to the assembly post
 
     def move_to_liquid(self, x, y):
         self.dashboard.Tool(index=0)
@@ -116,14 +117,12 @@ class MG400():
         self.dashboard.SpeedL(3)
         self.movectl.MovL(*self.liquid_poses_down[self.get_liquid_index(x,y)])
         self.movectl.Sync()
-        time.sleep(3)
         # TODO: level sensing and ensure the liquid is enough
         # self.logger.info(f"The current liquid level: {self.sartorius_rline.tellLevel()}")
         self.sartorius_rline.aspirate(volume)
-        time.sleep(3)
         self.movectl.MovL(*self.liquid_poses_up[self.get_liquid_index(x, y)])
         self.movectl.Sync()
-        time.sleep(3)
+        self.move_home()
 
     def return_liquid(self, x, y):
         self.move_to_liquid(x, y)
@@ -131,6 +130,9 @@ class MG400():
         self.movectl.MovL(*self.liquid_poses_down[self.get_liquid_index(x, y)])
         self.movectl.Sync()
         self.sartorius_rline.blowout()
+        self.movectl.MovL(*self.liquid_poses_up[self.get_liquid_index(x, y)])
+        self.movectl.Sync()
+        self.move_home()
 
     def add_liquid_to_post(self, volume):
         self.move_to_assemble_post()
@@ -138,7 +140,6 @@ class MG400():
         self.movectl.MovL(*self.assembly_pose_down)
         self.movectl.Sync()
         self.sartorius_rline.dispense(volume)
-        time.sleep(5)
         self.movectl.MovL(*self.assembly_pose_up)
         self.movectl.Sync()
 
@@ -268,40 +269,3 @@ def mg400_example():
         exit()
     mg400.move_home()
     main_loop(mg400)
-
-def mg400_example_debug():
-    mg400 = MG400(ip="192.168.0.107")
-    ok = mg400.intialize_robot()
-    if not ok:
-        print("Failed to initialize MG400, program aborted!")
-        exit()
-    mg400.move_home()
-    mg400.dashboard.Tool(index=0)
-    mg400.dashboard.SpeedJ(10)
-    mg400.dashboard.SpeedL(10)
-    up_high_position = [19.88, 282.44, 0.68, 35.36]
-    mg400.movectl.MovL(*up_high_position)
-    mg400.dashboard.wait()
-    up_position = [19.88, 282.44, -60.68, 35.36]
-    mg400.movectl.MovL(*up_position)
-    mg400.dashboard.wait()
-    down_position = [19.88, 282.44, -76.88, 35.36]
-    mg400.dashboard.SpeedL(3)
-    mg400.movectl.MovL(*down_position)
-    mg400.dashboard.wait()
-    tip_up_position = [19.88, 282.44, -14.28, 35.36]
-    mg400.movectl.MovL(*tip_up_position)
-    mg400.dashboard.wait()
-    prepare_drain_liquid_position = [6.98, 393.24, -20.28, 35.36]
-    mg400.movectl.MovJ(*prepare_drain_liquid_position)
-    mg400.dashboard.wait()
-    mg400.dashboard.SpeedL(3)
-    drain_liquid_position = [6.98, 393.24, -72.01, 35.36]
-    mg400.movectl.MovL(*drain_liquid_position)
-    mg400.dashboard.wait()
-    mg400.movectl.MovL(*prepare_drain_liquid_position)
-    mg400.dashboard.wait()
-    # put the tip back
-    assembly_prepare_location = [8.67, -351.02, 58.73, -90.04]
-    mg400.movectl.MovJ(*assembly_prepare_location)
-    mg400.dashboard.wait()
