@@ -6,6 +6,7 @@ from BatteryLab.robots.Constants import AssemblyRobotConstants, AssemblyRobotCam
 from BatteryLab.helper.utils import create_assembly_robot_constants_from_manual_positions, create_assembly_robot_camera_constants_from_manual_positions
 from linear_rail_control.linear_rail_client import LinearRailClient
 import numpy as np
+import ast
 
 import yaml
 from pathlib import Path
@@ -103,10 +104,10 @@ class AssemblyRobot(Node):
         # Move home based on the tooling
         if component_name == 'Washer':
             self.rail_meca500.change_tool(tool_name=RobotTool.GRIPPER)
-            self.rail_meca500.move_home(tool=RobotTool.GRIPPER)
+            self.rail_meca500.move_home()
         else:
             self.rail_meca500.change_tool(tool_name=RobotTool.SUCTION)
-            self.rail_meca500.move_home(tool=RobotTool.SUCTION)
+            self.rail_meca500.move_home()
         
         # Move the Zaber Rail
         self.move_zaber_rail(rail_position)
@@ -163,7 +164,17 @@ def get_component_location_from_user(robot, component_prompt):
         print("The sublocation you pick is not valid!")
         exit()
     location = component[sub_location]
-    return location.grabPo, location.railPo, sub_location, component_name
+    return location.shape, location.grabPo, location.railPo, sub_location, component_name
+
+def get_location_index_from_user(shape, sub_location):
+    assert(len(shape) == 2)
+    index = input(f"which index do you want the robot to reach for {sub_location}, range [0, {shape[0] * shape[1]}), you can also provide a location [x, y]:")
+    try:
+        index = int(index)
+    except ValueError as e:
+        coordinates = ast.literal_eval(index) # convert the input to a list
+        index = shape[1] * coordinates[0] + coordinates[1]
+    return index
 
 def assembly_robot_command_loop(robot: AssemblyRobot, image_path="/home/yuanjian/Research/BatteryLab/images/anode_case_photos"):
     prompt= """Press [Enter] to quit, [S] to test component suction,
@@ -180,9 +191,9 @@ def assembly_robot_command_loop(robot: AssemblyRobot, image_path="/home/yuanjian
         if input_str == '':
             break
         elif input_str == 'S':
-            grabpos, railpos, sub_location, component_name = get_component_location_from_user(robot, component_prompt)
-            step = len(grabpos) / 4
-            test_range = [0, step, 2*step, 3*step]
+            shape, grabpos, railpos, sub_location, component_name = get_component_location_from_user(robot, component_prompt)
+            test_range = [0, shape[1] - 1, (shape[0] - 1) * shape[1] , len(grabpos) - 1]
+            print("The test range: []")
             test_all = input(f"Do you want to test the four corners or test all? (all/corners) default is corners:")
             if test_all == "all":
                 test_range = range(0, len(grabpos))
@@ -197,8 +208,8 @@ def assembly_robot_command_loop(robot: AssemblyRobot, image_path="/home/yuanjian
             image_file = str(Path(image_path) / f"ArmCam-{component_name}-{cur_time}.jpg")
             cv2.imwrite(image_file, image)
         elif input_str == 'M':
-            grabpos, railpos, sub_location, component_name = get_component_location_from_user(robot, component_prompt)
-            index = int(input(f"which index do you want the robot to reach for {sub_location}, range [0, {len(grabpos)}):"))
+            shape, grabpos, railpos, sub_location, component_name = get_component_location_from_user(robot, component_prompt)
+            index = get_location_index_from_user(shape, sub_location)
             if index >=0 and index < len(grabpos):
                 robot.grab_component(railpos, grabpos[index], is_grab=True, component_name=component_name)
                 if component_name == 'Washer':
@@ -209,8 +220,8 @@ def assembly_robot_command_loop(robot: AssemblyRobot, image_path="/home/yuanjian
                 print("The index you give is not valid for the robot to grab!")
                 continue
         elif input_str == 'L':
-            grabpos, railpos, sub_location, component_name = get_component_location_from_user(robot, component_prompt)
-            index = int(input(f"which index do you want the robot to reach for {sub_location}, range [0, {len(grabpos)}):"))
+            shape, grabpos, railpos, sub_location, component_name = get_component_location_from_user(robot, component_prompt)
+            index = get_location_index_from_user(shape, sub_location)
             if not (index >=0 and index < len(grabpos)):
                 print("The index you give is not valid for the robot to grab!")
                 continue

@@ -33,7 +33,7 @@ class RailMeca500(Meca500):
         if self.tool == RobotTool.GRIPPER:
             self.robot.SetGripperForce(5)
             self.robot.GripperClose()
-            self.robot.WaitGripperMoveCompletion()
+            self.robot.WaitGripperMoveCompletion(10)
         elif self.tool == RobotTool.SUCTION:
             self.suction_pump.continues_pick()
     
@@ -41,13 +41,9 @@ class RailMeca500(Meca500):
         if self.tool == RobotTool.GRIPPER:
             self.robot.SetGripperForce(5)
             self.robot.GripperOpen()
-            self.robot.WaitGripperMoveCompletion()
+            self.robot.WaitGripperMoveCompletion(10)
         elif self.tool== RobotTool.SUCTION:
             self.suction_pump.drop()
-
-    def move_after_drop(self):
-        self.robot.MoveJoints(*self.RobotConstants.HOME_POST_J)
-        self.robot.MoveJoints(*self.RobotConstants.HOME_SK_J)
 
     def pick_place(self, grab_pos, is_grab = True):
         self.logger.info(f"Starting picking component at {grab_pos}")
@@ -67,7 +63,7 @@ class RailMeca500(Meca500):
         self.robot.Delay(0.5)
         # Move the component back to home
         self.robot.SetCartLinVel(self.RobotConstants.L_VEL)
-        self.move_home(tool=RobotTool.SUCTION)
+        self.move_home(tool=self.tool)
         self.robot.WaitIdle()
 
 def rail_meca500_example_app():
@@ -78,5 +74,5 @@ def rail_meca500_example_app():
     meca500_robot = RailMeca500(robot_address=robot_address)
     meca500_robot.initializeRobot()
     meca500_robot.draw_square()
-    meca500_robot.move_home(tool=RobotTool.SUCTION)
+    meca500_robot.move_home(tool=meca500_robot.tool)
     meca500_robot.exitRobot()

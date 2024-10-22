@@ -39,6 +39,7 @@ class AssemblySteps(Enum):
 
 class ComponentProperty():
     def __init__(self):
+        self.shape: List[int] = [4, 4] # the grabPo shape 
         self.railPo: List[float] = None
         self.dropPo: List[float] = None
         self.grabPo: List[List[float]] = None

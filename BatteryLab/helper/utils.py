@@ -318,6 +318,7 @@ Spacer:
             n = 4
             if "shape" in component_sub_loc:
                 n, m = list(component_sub_loc["shape"])
+            component_property.shape = [m, n]
             bottom_left_coordinates = component_sub_loc[bottom_left_prop][cartesian_coord_prop]
             bottom_right_coordinates = component_sub_loc[bottom_right_prop][cartesian_coord_prop]
             top_left_coordinates = component_sub_loc[top_left_prop][cartesian_coord_prop]
