@@ -69,42 +69,44 @@ def draw_calculated_points(pos_list, m, n, file_name:str = "generated_points"):
     manual_x_coords = []
     manual_y_coords = []
     offset = 0.04
-    plt.figure(figsize=(n, m))
+    matplotlib.use('Agg')
+    fig, ax = plt.subplots(figsize=(m, n))
     for i in range(m * n):
         x = int(i // n)
         y = int(i % n)
         if (x == 0 and y == 0) or (x == m-1 and y == 0) or (x == 0 and y == n-1) or (x == m-1 and y == n-1):
             # Add index labels near each point
-            plt.text(pos_list[i][0] + offset, pos_list[i][1] + offset, str(i), fontsize=8, color='red')
+            ax.text(pos_list[i][1] + offset, pos_list[i][0] + offset, str(i), fontsize=8, color='red')
             manual_x_coords.append(pos_list[i][0])
             manual_y_coords.append(pos_list[i][1])
         else:
-            plt.text(pos_list[i][0] + offset, pos_list[i][1] + offset, str(i), fontsize=8, color='blue')
+            ax.text(pos_list[i][1] + offset, pos_list[i][0] + offset, str(i), fontsize=8, color='blue')
             x_coords.append(pos_list[i][0])
             y_coords.append(pos_list[i][1])
-    plt.scatter(y_coords, x_coords, color='blue', s=14)  # Plot the points
-    plt.scatter(manual_y_coords,manual_x_coords, color='red', s=14)
+    ax.scatter(y_coords, x_coords, color='blue', s=14)  # Plot the points
+    ax.scatter(manual_y_coords,manual_x_coords, color='red', s=14)
     for i in range(4):
         if i == 0 or i == 2:
             points_x = [manual_x_coords[i], manual_x_coords[(i+1) % 4]]
             points_y = [manual_y_coords[i], manual_y_coords[(i+1) % 4]]
-            plt.plot(points_y,points_x, color='r', linewidth=1)
+            ax.plot(points_y,points_x, color='r', linewidth=1)
         if i == 0 or i == 1:
             points_x = [manual_x_coords[i], manual_x_coords[(i+2) % 4]]
             points_y = [manual_y_coords[i], manual_y_coords[(i+2) % 4]]
-            plt.plot(points_y,points_x, color='r', linewidth=1)
+            ax.plot(points_y,points_x, color='r', linewidth=1)
 
+    ax.invert_yaxis() # reverse our x-axis (plotted as y-axis) to make it the same as real scene
     # Add labels and title
-    plt.xlabel('Y-axis')
-    plt.ylabel('X-axis')
-    plt.title(file_name)
+    ax.set_xlabel('Y-axis')
+    ax.set_ylabel('X-axis')
+    ax.set_title(file_name)
     # Display the grid and axes
-    plt.grid(True)
-    plt.axis('equal')
+    ax.grid()
+    ax.set_aspect('equal')
     project_dir = Path(__file__).parent.parent.parent / "images"
     os.makedirs(str(project_dir), exist_ok=True)
     plt.savefig(str(project_dir / (file_name + ".png")))
-    matplotlib.pyplot.close()
+    plt.close(fig)
 
 def get_m_n_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left_coordinates, top_right_coordinates, m, n, name:str="default"):
     # Ensure inputs are numpy arrays
@@ -343,7 +345,7 @@ Spacer:
             m = 4
             n = 4
             if "shape" in component_sub_loc:
-                n, m = list(component_sub_loc["shape"])
+                m, n = list(component_sub_loc["shape"])
             component_property.shape = [m, n]
             bottom_left_coordinates = component_sub_loc[bottom_left_prop][cartesian_coord_prop]
             bottom_right_coordinates = component_sub_loc[bottom_right_prop][cartesian_coord_prop]
