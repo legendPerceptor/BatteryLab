@@ -92,6 +92,7 @@ class AssemblyRobotConstants():
         self.Anode: dict = {}
         self.Washer: dict = {}
         self.Spacer: dict = {}
+        self.SpacerExtra: dict = {}
         self.AnodeCase: dict = {}
 
 class StepCorrectionConfig(BaseModel):

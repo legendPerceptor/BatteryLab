@@ -203,7 +203,7 @@ def assembly_robot_command_loop(robot: AssemblyRobot, image_path="/home/yuanjian
 :> """
 
     component_prompt = """Which type of component do you want to test? Choose from the following
-["CathodeCase", "Cathode", "Separator", "Anode", "Washer", "Spacer", "AnodeCase"]
+["CathodeCase", "Cathode", "Spacer", "SpacerExtra", "Anode", "Washer", "Separator", "AnodeCase"]
 :> """
 
     while True:

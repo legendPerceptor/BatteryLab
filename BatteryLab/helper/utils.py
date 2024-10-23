@@ -315,7 +315,7 @@ Spacer:
     constants.LOOKUP_CAM_RAIL_LOCATION = lookup_camera[rail_pos_prop]
     constants.LOOKUP_CAM_GRIPPER_PO = lookup_camera['gripper'][cartesian_coord_prop]
 
-    components = ["CathodeCase", "Cathode", "Separator", "Anode", "Washer", "Spacer", "AnodeCase"]
+    components = ["CathodeCase", "Cathode", "Spacer", "SpacerExtra", "Anode", "Washer", "Separator", "AnodeCase"]
 
     for component_name in components:
         print(f"Dealing with component <{component_name}>")
