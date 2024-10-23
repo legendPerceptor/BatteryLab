@@ -267,9 +267,9 @@ def assembly_robot_command_loop(robot: AssemblyRobot, image_path="/home/yuanjian
                 print("The index you give is not valid to do manual adjustment!")
                 continue
             level = float(input("Please provide the level you want the manual adjustment to be (1 is highest, and 0 is closest to the tray):"))
-            robot.manual_adjustment(railpos, grabpos, level)
+            robot.manual_adjustment(railpos, grabpos[index], level)
             finished = input("Have you finished adjusting? Press Enter to move up and home the robot:")
-            robot.manual_adjustment(railpos, grabpos, 1)
+            robot.manual_adjustment(railpos, grabpos[index], 1)
             robot.rail_meca500.move_home()
         elif input_str == 'L':
             # Move a component to the lookup camera for a picture
