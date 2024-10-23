@@ -107,39 +107,65 @@ def draw_calculated_points(pos_list, m, n, file_name:str = "generated_points"):
     matplotlib.pyplot.close()
 
 def get_m_n_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left_coordinates, top_right_coordinates, m, n, name:str="default"):
-    avg_height = np.average([bottom_left_coordinates[2], bottom_right_coordinates[2], top_left_coordinates[2], top_right_coordinates[2]])
-    # pos_dict: dict[int, List[float]] = {}
-    # delta_y = np.average([bottom_right_coordinates[1] - bottom_left_coordinates[1], top_right_coordinates[1] - top_left_coordinates[1]]) / (m-1)
-    # delta_x = np.average([bottom_right_coordinates[0] - top_right_coordinates[0], bottom_left_coordinates[0] - top_left_coordinates[0]]) / (n-1)
-    pos_list: List[List[float]] = []
-    top_edge_x = np.linspace(top_left_coordinates[0], top_right_coordinates[0], n)
-    top_edge_y = np.linspace(top_left_coordinates[1], top_right_coordinates[1], n)
-    bottom_edge_x = np.linspace(bottom_left_coordinates[0], bottom_right_coordinates[0], n)
-    bottom_edge_y = np.linspace(bottom_left_coordinates[1], bottom_right_coordinates[1], n)
-    
-    grid_x = np.zeros((m, n))
-    grid_y = np.zeros((m, n))
-    
-    for i in range(n):
-        grid_x[:, i] = np.linspace(top_edge_x[i], bottom_edge_x[i], m)
-        grid_y[:, i] = np.linspace(top_edge_y[i], bottom_edge_y[i], m)
+    # Ensure inputs are numpy arrays
+    P_TL = np.array(top_left_coordinates)
+    P_TR = np.array(top_right_coordinates)
+    P_BL = np.array(bottom_left_coordinates)
+    P_BR = np.array(bottom_right_coordinates)
 
-    for i in range(n * m):
-        x = int(i // n)
-        y = int(i % n)
-        if x == 0 and y == 0:
-            pos_list.append(top_left_coordinates)
-        elif x == m-1 and y == 0:
-            pos_list.append(bottom_left_coordinates)
-        elif x == 0 and y == n-1:
-            pos_list.append(top_right_coordinates)
-        elif x == m-1 and y == n-1:
-            pos_list.append(bottom_right_coordinates)
-        else:
-            # pos_dict[i] = [float(top_left_coordinates[0] + x * delta_x), float(top_left_coordinates[1] + y * delta_y), float(avg_height)] + bottom_left_coordinates[3:]
-            pos_list.append([grid_x[x, y], grid_y[x, y], avg_height] + bottom_left_coordinates[3:])
+    # Initialize the array to store positions for each well
+    well_positions = np.zeros((m, n, 6))  # m x n grid with 6 values (x, y, z, rx, ry, rz)
+
+    # Iterate over the grid and calculate bilinear interpolation for each point
+    pos_list = []
+    for i in range(m):
+        for j in range(n):
+            # Scale i and j to be between 0 and 1
+            scaled_i = i / (m - 1)
+            scaled_j = j / (n - 1)
+
+            # Bilinear interpolation formula
+            well_positions[i, j] = (
+                (1 - scaled_i) * (1 - scaled_j) * P_TL +
+                scaled_i * (1 - scaled_j) * P_TR +
+                (1 - scaled_i) * scaled_j * P_BL +
+                scaled_i * scaled_j * P_BR
+            )
+            pos_list.append(list(well_positions[i, j]))
+    
     draw_calculated_points(pos_list, m, n, name)
     return pos_list
+    # old implementation
+    # avg_height = np.average([bottom_left_coordinates[2], bottom_right_coordinates[2], top_left_coordinates[2], top_right_coordinates[2]])
+    # pos_list: List[List[float]] = []
+    # top_edge_x = np.linspace(top_left_coordinates[0], top_right_coordinates[0], n)
+    # top_edge_y = np.linspace(top_left_coordinates[1], top_right_coordinates[1], n)
+    # bottom_edge_x = np.linspace(bottom_left_coordinates[0], bottom_right_coordinates[0], n)
+    # bottom_edge_y = np.linspace(bottom_left_coordinates[1], bottom_right_coordinates[1], n)
+    
+    # grid_x = np.zeros((m, n))
+    # grid_y = np.zeros((m, n))
+    
+    # for i in range(n):
+    #     grid_x[:, i] = np.linspace(top_edge_x[i], bottom_edge_x[i], m)
+    #     grid_y[:, i] = np.linspace(top_edge_y[i], bottom_edge_y[i], m)
+
+    # for i in range(n * m):
+    #     x = int(i // n)
+    #     y = int(i % n)
+    #     if x == 0 and y == 0:
+    #         pos_list.append(top_left_coordinates)
+    #     elif x == m-1 and y == 0:
+    #         pos_list.append(bottom_left_coordinates)
+    #     elif x == 0 and y == n-1:
+    #         pos_list.append(top_right_coordinates)
+    #     elif x == m-1 and y == n-1:
+    #         pos_list.append(bottom_right_coordinates)
+    #     else:
+    #         # pos_dict[i] = [float(top_left_coordinates[0] + x * delta_x), float(top_left_coordinates[1] + y * delta_y), float(avg_height)] + bottom_left_coordinates[3:]
+    #         pos_list.append([grid_x[x, y], grid_y[x, y], avg_height] + bottom_left_coordinates[3:])
+    # draw_calculated_points(pos_list, m, n, name)
+    # return pos_list
 
 def create_assembly_robot_camera_constants_from_manual_positions(camera_manual_positions) -> AssemblyRobotCameraConstants:
     """
