@@ -66,11 +66,17 @@ class AssemblyRobot(Node):
         self.get_logger().debug(f"Assembly Robot move request finished")
 
     def take_a_look_up_photo(self):
+        self.rail_meca500.move_home() # based on current
+        current_tool = self.rail_meca500.get_current_tool()
         rail_pos = self.assemblyRobotConstants.LOOKUP_CAM_RAIL_LOCATION
-        robot_pos = self.assemblyRobotConstants.LOOKUP_CAM_SK_PO
-        Trf = self.assemblyRobotConstants.TRF
+        if current_tool == RobotTool.SUCTION:
+            robot_pos = self.assemblyRobotConstants.LOOKUP_CAM_SK_PO
+        elif current_tool == RobotTool.GRIPPER:
+            robot_pos = self.assemblyRobotConstants.LOOKUP_CAM_GRIPPER_PO
+        else:
+            self.get_logger().error("The current tool is invalid for a snapshot")
+            return
         self.move_zaber_rail(rail_pos)
-        self.rail_meca500.robot.SetTrf(*Trf)
         self.rail_meca500.robot.MovePose(*robot_pos)
         self.rail_meca500.robot.WaitIdle(30)
         self.rail_meca500.robot.Delay(0.2)
@@ -84,9 +90,8 @@ class AssemblyRobot(Node):
     def take_a_tray_photo(self, component_name: str):
         component_dict = getattr(self.assemblyRobotCameraConstants, component_name)
         rail_pos = component_dict['rail_pos']
-        Trf = self.assemblyRobotCameraConstants.TRF
+        self.rail_meca500.change_tool(RobotTool.CAMERA)
         robot_pos = self.assemblyRobotCameraConstants.RobotPose if "cartesian" not in component_dict else component_dict['cartesian'] 
-        self.rail_meca500.robot.SetTrf(*Trf)
         self.rail_meca500.robot.MovePose(*robot_pos)
         self.rail_meca500.robot.WaitIdle(30)
         self.rail_meca500.robot.Delay(0.2)

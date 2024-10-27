@@ -19,6 +19,9 @@ class RailMeca500(Meca500):
             print("Cannot connect to the suction pump!")
         self.tool = RobotTool.SUCTION
 
+    def get_current_tool(self) -> RobotTool:
+        return self.tool
+
     def change_tool(self, tool_name: RobotTool):
         if tool_name == RobotTool.GRIPPER:
             self.robot.SetTRF(*self.RobotConstants.TCP_GP)
@@ -39,6 +42,8 @@ class RailMeca500(Meca500):
             self.robot.WaitGripperMoveCompletion(10)
         elif self.tool == RobotTool.SUCTION:
             self.suction_pump.continues_pick()
+        else:
+            self.logger.error("invalid tool for smart grab!")
     
     def smart_drop(self):
         if self.tool == RobotTool.GRIPPER:
@@ -47,6 +52,8 @@ class RailMeca500(Meca500):
             self.robot.WaitGripperMoveCompletion(10)
         elif self.tool== RobotTool.SUCTION:
             self.suction_pump.drop()
+        else:
+            self.logger.error("invalid tool for smart grab!")
 
     def pick_place(self, grab_pos, is_grab = True):
         self.logger.info(f"Starting picking component at {grab_pos}")
