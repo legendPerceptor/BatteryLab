@@ -84,10 +84,6 @@ class Meca500():
             self.robot.MoveJoints(*self.RobotConstants.HOME_GP_J)
         self.robot.WaitIdle(30)
 
-    def move_for_snapshot(self):
-        self.robot.MovePose(*self.RobotConstants.SNAP_SHOT_GRAB_PO)
-        self.robot.WaitIdle(30)
-
     def draw_square(self):
         """For development purpose only, don't use in production"""
         try:

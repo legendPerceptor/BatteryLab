@@ -17,8 +17,6 @@ class Meca500RobotConstants(BaseModel):
     HOME_GP_J: List[float] = [0, 0, 0, 0, 0, 0]
     HOME_SK_J: List[float] = [0, 0, 0, 0, 0, 0]
     HOME_CA_J: List[float] = [0, 0, 0, 0, 0, 0]
-    HOME_POST_J: List[float] = [0, 0, 0, 0, 0, 0]
-    SNAP_SHOT_GRAB_PO: List[float] = [0, 0, 0, 0, 0, 0]
 
 class Components(Enum):
     Anode_Case=1
