@@ -82,9 +82,10 @@ class AssemblyRobot(Node):
         return image     
         
     def take_a_tray_photo(self, component_name: str):
-        rail_pos = getattr(self.assemblyRobotCameraConstants, component_name)
+        component_dict = getattr(self.assemblyRobotCameraConstants, component_name)
+        rail_pos = component_dict['rail_pos']
         Trf = self.assemblyRobotCameraConstants.TRF
-        robot_pos = self.assemblyRobotCameraConstants.RobotPose
+        robot_pos = self.assemblyRobotCameraConstants.RobotPose if "cartesian" not in component_dict else component_dict['cartesian'] 
         self.move_zaber_rail(rail_pos)
         self.rail_meca500.robot.SetTrf(*Trf)
         print(f"To take a photo, moving to Robot Pos {robot_pos}")

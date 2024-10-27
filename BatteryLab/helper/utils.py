@@ -204,10 +204,10 @@ AnodeCase:
     constants = AssemblyRobotCameraConstants()
     constants.HOME_J = camera_manual_positions["Home"]
     constants.TRF = camera_manual_positions["TRF"]
-    components = ["CathodeCase", "Cathode", "Separator", "Anode", "Washer", "Spacer", "AnodeCase"]
+    components = ["CathodeCase", "Cathode", "Spacer", "SpacerExtra", "Anode", "Washer", "Separator", "AnodeCase"]
     constants.RobotPose = camera_manual_positions["RobotPose"]["cartesian"]
     for component in components:
-        setattr(constants, component, camera_manual_positions[component]["rail_pos"])
+        setattr(constants, component, camera_manual_positions[component])
     return constants
 
 def create_assembly_robot_constants_from_manual_positions(manual_positions) -> AssemblyRobotConstants:
@@ -220,80 +220,9 @@ def create_assembly_robot_constants_from_manual_positions(manual_positions) -> A
     Returns:
         AssemblyRobotConstants: generate all the well positions and record other location constants.
 
-    There are 7 fields for different components, namely Cathode Case, Cathode, Separator, Anode, Washer, Spacer, Anode Case.
-    Each component tray will have 4 manually posed positions at 4 corners (x, y, z, alpha, beta, gama). There are 64 wells on each tray.
+    There are 8 fields for different components, namely Cathode Case, Cathode, Spacer, SpacerExtra, Anode, Washer, Separator, Anode Case.
+    Each component tray will have 16 manually posed positions at 4 corners (x, y, z, alpha, beta, gama). There are 64 wells on each tray.
     The location for each well will be bilinearly interpolated by the 4 positions.
-
-    An example YAML file looks like the following.
-
-TRF: [43, 12.0, 75.734, 0, 45, 0]
-Home: [0, 0, 0, 0, 45, 0] 
-AssemblePost:
-  rail_pos: 110.0
-  cartesian: [-224.18615, -168.52829, 49.29558, 179.99999, -0.00001, -22.02103]
-  joints: [-141.10427, 43.06009, -1.64403, -68.06679, 12.7839, 79.67016]
-LookupCamera:
-  rail_pos: 105.0
-  cartesian: [-222.98894, -102.23394, 122.5639, 179.99999, 0, -22.02105]
-  joints: [-158.25595, 20.22285, -0.07483, 0.46605, 24.85303, -0.61875]
-Spacer:
-  bottom_right_box:
-    rail_pos: 0.0
-    top_left:
-      cartesian: [187.94318, -128.6655, -43.60079, -180, 0, -179.99999]
-      joints: [-50.65956, 61.76791, 15.80108, -62.43019, -38.09191, 15.65597]
-    top_right:
-      cartesian: [187.94313, -59.88992, -43.87432, -179.99999, -0.00001, -180]
-      joints: [-31.94384, 54.79421, 41.05701, -29.21546, -50.04, -4.03524]
-    bottom_left:
-      cartesian: [256.62244, -128.66552, -43.83429, -180, 0, -179.99999]
-      joints: [-37.40065, 76.78961, -21.94534, -83.08163, -25.63496, 53.93757]
-    bottom_right:
-      cartesian: [256.62243, -59.75853, -43.85109, 180, 0, -180]
-      joints: [-21.30765, 65.50667, 5.70367, -32.98368, -28.16281, 14.35802]
-  bottom_left_box:
-    rail_pos: 8.0
-    top_left:
-      cartesian: [188.2683, -140.14922, -43.21727, -179.99999, 0.00001, -179.99997]
-      joints: [-52.76732, 63.7041, 10.04234, -69.29185, -37.00412, 21.73102]
-    top_right:
-      cartesian: [187.76203, -71.62817, -43.95334, -179.99999, 0.00001, -179.99996]
-      joints: [-35.99673, 55.48907, 37.80336, -34.19027, -47.6945, -2.61597]
-    bottom_left:
-      cartesian: [256.66829, -140.14921, -44.12214, -179.99998, 0.00001, -179.99997]
-      joints: [-39.58355, 80.32561, -29.86375, -93.79165, -26.84373, 63.93629]
-    bottom_right:
-      cartesian: [256.66829, -71.53552, -44.08656, -179.99998, 0.00001, -179.99997]
-      joints: [-24.41507, 66.81093, 2.46611, -39.70348, -27.22797, 18.6433]
-  top_left_box:
-    rail_pos: 0.0
-    top_left:
-      cartesian: [96.17218, -220.46755, -43.40975, 180, 0.00001, -179.99997]
-      joints: [-84.22072, 77.57258, -23.98963, -117.25954, -52.31706, 48.2725]
-    top_right:
-      cartesian: [96.17218, -151.32057, -43.63123, -180, 0.00001, -179.99997]
-      joints: [-81.80227, 58.56065, 25.69223, -87.58548, -44.46742, 8.13413]
-    bottom_left:
-      cartesian: [164.74315, -220.46754, -43.689, -180, 0, -179.99997]
-      joints: [-68.38746, 87.63256, -46.25383, -118.59964, -48.48243, 68.69939]
-    bottom_right:
-      cartesian: [164.7535, -151.32057, -43.85983, -180, 0.00002, -179.99996]
-      joints: [-60.57786, 63.09773, 12.2525, -75.67902, -39.46895, 20.27669]
-  top_right_box:
-    rail_pos: -1
-    top_left:
-      cartesian: []
-      joints: []
-    top_right:
-      cartesian: []
-      joints: []
-    bottom_left:
-      cartesian: []
-      joints: []
-    bottom_right:
-      cartesian: []
-      joints: []
-    ...
     """
     constants = AssemblyRobotConstants()
 

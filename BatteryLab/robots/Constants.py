@@ -49,13 +49,14 @@ class AssemblyRobotCameraConstants():
         self.HOME_J: List[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.TRF: List[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.RobotPose: List[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        self.AnodeCase: float = 0.0
-        self.Anode: float = 0.0
-        self.Separator: float = 0.0
-        self.Cathode: float = 0.0
-        self.Spacer: float = 0.0
-        self.Washer: float = 0.0
-        self.CathodeCase: float = 0.0
+        self.AnodeCase: dict = {}
+        self.Anode: dict = {}
+        self.Separator: dict = {}
+        self.Cathode: dict = {}
+        self.Spacer: dict = {}
+        self.SpacerExtra: dict = {}
+        self.Washer: dict = {}
+        self.CathodeCase: dict = {}
 
 class CrimperRobotConstants(BaseModel):
         TRF : List[float] = [20, 0, 95,  0,  0,  0]
