@@ -65,24 +65,48 @@ class AssemblyRobot(Node):
         # make sure the move is finished
         self.get_logger().debug(f"Assembly Robot move request finished")
 
+    def drop_current_component_to_assembly_post(self):
+        self.rail_meca500.move_home()
+        current_tool = self.rail_meca500.get_current_tool()
+        rail_pos = self.assemblyRobotConstants.POST_RAIL_LOCATION
+        if current_tool == RobotTool.SUCTION:
+            robot_pos = self.assemblyRobotConstants.POST_C_SK_PO
+            mid_point_joints = [-90, 0, 0, 0, 45, 0]
+        elif current_tool == RobotTool.GRIPPER:
+            robot_pos = self.assemblyRobotConstants.POST_C_GRIPPER_PO
+            mid_point_joints = [-90, 0, 0, 0, 0, 0]
+        else:
+            self.get_logger().error("The current tool is invalid for a snapshot")
+            return
+        self.move_zaber_rail(rail_pos)
+        self.rail_meca500.robot.MoveJoints(*mid_point_joints)
+        self.rail_meca500.robot.WaitIdle(30)
+        self.rail_meca500.pick_place(robot_pos, is_grab=False)
+
     def take_a_look_up_photo(self):
         self.rail_meca500.move_home() # based on current
         current_tool = self.rail_meca500.get_current_tool()
         rail_pos = self.assemblyRobotConstants.LOOKUP_CAM_RAIL_LOCATION
         if current_tool == RobotTool.SUCTION:
             robot_pos = self.assemblyRobotConstants.LOOKUP_CAM_SK_PO
+            mid_point_joints = [-90, 0, 0, 0, 45, 0]
         elif current_tool == RobotTool.GRIPPER:
             robot_pos = self.assemblyRobotConstants.LOOKUP_CAM_GRIPPER_PO
+            mid_point_joints = [-90, 0, 0, 0, 0, 0]
         else:
             self.get_logger().error("The current tool is invalid for a snapshot")
             return
         self.move_zaber_rail(rail_pos)
-        self.rail_meca500.robot.MovePose(*robot_pos)
+        self.rail_meca500.robot.MoveJoints(*mid_point_joints)
         self.rail_meca500.robot.WaitIdle(30)
+        self.rail_meca500.robot.MovePose(*robot_pos)
+        self.rail_meca500.robot.WaitIdle(10)
         self.rail_meca500.robot.Delay(0.2)
         # TODO: use get_image for storing the image or analysis
-        self.look_up_camera_client.send_request()
-        rclpy.spin_until_future_complete(self.look_up_camera_client, self.look_up_camera_client.future)
+        for i in range(2):
+            self.look_up_camera_client.send_request()
+            rclpy.spin_until_future_complete(self.look_up_camera_client, self.look_up_camera_client.future)
+            time.sleep(1)
         # self.look_up_camera_client.display_image()
         image = self.look_up_camera_client.get_image()
         return image     
@@ -244,10 +268,7 @@ def assembly_robot_command_loop(robot: AssemblyRobot, image_path="/home/yuanjian
             index = get_location_index_from_user(shape, sub_location)
             if index >=0 and index < len(grabpos):
                 robot.grab_component(railpos, grabpos[index], is_grab=True, component_name=component_name)
-                if component_name == 'Washer':
-                    pass
-                else:
-                    robot.grab_component(robot.assemblyRobotConstants.POST_RAIL_LOCATION, robot.assemblyRobotConstants.POST_C_SK_PO, is_grab=False, component_name=component_name)
+                robot.drop_current_component_to_assembly_post()
             else:
                 print("The index you give is not valid for the robot to grab!")
                 continue
