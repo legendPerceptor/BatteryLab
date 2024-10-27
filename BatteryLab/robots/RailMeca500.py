@@ -26,6 +26,9 @@ class RailMeca500(Meca500):
         elif tool_name == RobotTool.SUCTION:
             self.robot.SetTRF(*self.RobotConstants.TCP_SK)
             self.home = self.RobotConstants.HOME_SK_J
+        elif tool_name == RobotTool.CAMERA:
+            self.robot.SetTRF(*self.RobotConstants.TCP_CA)
+            self.home = self.RobotConstants.HOME_CA_J
         self.tool = tool_name
 
 

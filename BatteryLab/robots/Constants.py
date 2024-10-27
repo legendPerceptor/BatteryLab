@@ -5,6 +5,7 @@ from typing import List
 class RobotTool(Enum):
     GRIPPER = 1
     SUCTION = 2
+    CAMERA = 3
 
 class Meca500RobotConstants(BaseModel):
     GRIP_F: int = 10
@@ -17,7 +18,6 @@ class Meca500RobotConstants(BaseModel):
     HOME_GP_J: List[float] = [0, 0, 0, 0, 0, 0]
     HOME_SK_J: List[float] = [0, 0, 0, 0, 0, 0]
     HOME_CA_J: List[float] = [0, 0, 0, 0, 0, 0]
-
 class Components(Enum):
     Anode_Case=1
     Anode_Spacer=2

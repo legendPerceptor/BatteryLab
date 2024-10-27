@@ -82,6 +82,8 @@ class Meca500():
             self.robot.MoveJoints(*self.RobotConstants.HOME_SK_J)
         elif tool == RobotTool.GRIPPER:
             self.robot.MoveJoints(*self.RobotConstants.HOME_GP_J)
+        elif tool == RobotTool.CAMERA:
+            self.robot.MoveJoints(*self.RobotConstants.HOME_CA_J)
         self.robot.WaitIdle(30)
 
     def draw_square(self):

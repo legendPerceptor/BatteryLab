@@ -86,12 +86,12 @@ class AssemblyRobot(Node):
         rail_pos = component_dict['rail_pos']
         Trf = self.assemblyRobotCameraConstants.TRF
         robot_pos = self.assemblyRobotCameraConstants.RobotPose if "cartesian" not in component_dict else component_dict['cartesian'] 
-        self.move_zaber_rail(rail_pos)
         self.rail_meca500.robot.SetTrf(*Trf)
-        print(f"To take a photo, moving to Robot Pos {robot_pos}")
         self.rail_meca500.robot.MovePose(*robot_pos)
         self.rail_meca500.robot.WaitIdle(30)
         self.rail_meca500.robot.Delay(0.2)
+        self.move_zaber_rail(rail_pos)
+        print(f"To take a photo, moving to Robot Pos {robot_pos}")
         # TODO: use get_image for storing the image or analysis
         self.arm_camera_client.send_request()
         rclpy.spin_until_future_complete(self.arm_camera_client, self.arm_camera_client.future)
