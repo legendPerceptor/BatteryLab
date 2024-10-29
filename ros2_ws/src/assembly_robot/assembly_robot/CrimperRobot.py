@@ -13,7 +13,7 @@ class CrimperRobot(Node):
         super().__init__("crimper_robot")
         self.logger = self.get_logger() if logger is None else logger
         self.crimper_robot = BreadBoardMeca500(logger=self.logger, robot_address=robot_address)
-        self.tower_camera_client = ImageClient(node_name="crimper_tower_camera", serv_name="/batterylab/tower_camera")
+        self.tower_camera_client = ImageClient(node_name="crimper_tower_camera", serv_name="/batterylab/lookup_camera")
     
     def initialize_and_home_robots(self):
         ok = self.crimper_robot.initializeRobot()

@@ -17,6 +17,12 @@ class BreadBoardMeca500(Meca500):
             self.logger.error("Cannot load the crimper robot constants: ", e)
             print("Program will exit because it cannot load crimper robot constants")
             exit()
+        self.setup_for_pick_up()
+
+    def setup_for_pick_up(self):
+        self.robot.SetTrf(*self.crimperRobotConstants.TRF)
+        self.robot.SetGripperForce(self.RobotConstants.GRIP_F)
+        self.robot.SetGripperVel(self.RobotConstants.GRIP_VEL)
     
     def pick_up_from_assembly_post(self):
         self.robot.SetTrf(*self.crimperRobotConstants.TRF)
