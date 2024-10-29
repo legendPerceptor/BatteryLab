@@ -108,7 +108,7 @@ def draw_calculated_points(pos_list, m, n, file_name:str = "generated_points"):
     plt.savefig(str(project_dir / (file_name + ".png")))
     plt.close(fig)
 
-def get_m_n_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left_coordinates, top_right_coordinates, m, n, name:str="default"):
+def get_m_n_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left_coordinates, top_right_coordinates, m, n, num_of_joints=6, name:str="default"):
     # Ensure inputs are numpy arrays
     P_TL = np.array(top_left_coordinates)
     P_TR = np.array(top_right_coordinates)
@@ -116,7 +116,7 @@ def get_m_n_well_pos(bottom_left_coordinates, bottom_right_coordinates, top_left
     P_BR = np.array(bottom_right_coordinates)
 
     # Initialize the array to store positions for each well
-    well_positions = np.zeros((m, n, 6))  # m x n grid with 6 values (x, y, z, rx, ry, rz)
+    well_positions = np.zeros((m, n, num_of_joints))  # m x n grid with 6 values (x, y, z, rx, ry, rz)
 
     # Iterate over the grid and calculate bilinear interpolation for each point
     pos_list = []

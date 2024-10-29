@@ -168,11 +168,11 @@ class MG400():
         self.tip_poses_down = get_m_n_well_pos(tipcase["bottom_left"]["down"],
                          tipcase["bottom_right"]["down"],
                          tipcase["top_left"]["down"],
-                         tipcase["top_right"]["down"], m, n, "mg400-tip-pose-up")
+                         tipcase["top_right"]["down"], m, n, 4, "mg400-tip-pose-up")
         self.tip_poses_up = get_m_n_well_pos(tipcase["bottom_left"]["up"],
                          tipcase["bottom_right"]["up"],
                          tipcase["top_left"]["up"],
-                         tipcase["top_right"]["up"], m, n, "mg400-tip-pose-down")
+                         tipcase["top_right"]["up"], m, n, 4, "mg400-tip-pose-down")
         
         liquid = config["Liquid"]
         m = int(liquid["m"])
@@ -182,11 +182,11 @@ class MG400():
         self.liquid_poses_down = get_m_n_well_pos(liquid["bottom_left"]["down"],
                          liquid["bottom_right"]["down"],
                          liquid["top_left"]["down"],
-                         liquid["top_right"]["down"], m, n, "mg400-liquid-pose-down")
+                         liquid["top_right"]["down"], m, n, 4, "mg400-liquid-pose-down")
         self.liquid_poses_up = get_m_n_well_pos(liquid["bottom_left"]["up"],
                          liquid["bottom_right"]["up"],
                          liquid["top_left"]["up"],
-                         liquid["top_right"]["up"], m, n, "mg400-liquid-pose-up")
+                         liquid["top_right"]["up"], m, n, 4, "mg400-liquid-pose-up")
         
         self.assembly_pose_up = config["AssemblyPost"]["prepare_location"]
         self.assembly_pose_down = config["AssemblyPost"]["drop_location"]
