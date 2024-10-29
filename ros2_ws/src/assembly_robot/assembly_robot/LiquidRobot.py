@@ -16,7 +16,6 @@ class LiquidRobot(Node):
         if not ok:
             print("Failed to initialize MG400, program aborted!")
             return False
-        self.MG400.move_home()
         return True
     
     def disconnect(self):
