@@ -15,8 +15,8 @@ TipCase:
     down: [-35.56, 281.29, -76.21, 90.03]
     up: [-35.56, 281.29, -15.21, 90.03]
 AssemblyPost:
-  prepare_location: [7.97, -356.67, 58.73, -90]
-  drop_location: [7.97, -356.67, 22.91, -90]
+  prepare_location: [7.97, -352.17, 58.73, -90]
+  drop_location: [7.97, -352.17, 22.91, -90]
 Liquid:
   m: 4
   n: 4
