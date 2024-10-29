@@ -14,13 +14,13 @@ class CrimperRobot(Node):
         self.logger = self.get_logger() if logger is None else logger
         self.crimper_robot = BreadBoardMeca500(logger=self.logger, robot_address=robot_address)
         self.tower_camera_client = ImageClient(node_name="crimper_tower_camera", serv_name="/batterylab/tower_camera")
-        self.initialize_and_home_robots()
     
     def initialize_and_home_robots(self):
         ok = self.crimper_robot.initializeRobot()
         if not ok:
             print("The Crimper Meca500 cannot be connected")
             exit()
+        self.crimper_robot.move_home(tool=RobotTool.GRIPPER)
     
     def exitRobot(self):
         self.crimper_robot.exitRobot()
