@@ -1,6 +1,6 @@
 TipCase:
-  m: 12
-  n: 8
+  m: 8
+  n: 12
   tool_index: 0
   bottom_right:
     down: [62.04, 281.29, -76.0, 90.03]
