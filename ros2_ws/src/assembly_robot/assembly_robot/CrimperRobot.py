@@ -22,6 +22,9 @@ class CrimperRobot(Node):
             exit()
         self.crimper_robot.move_home(tool=RobotTool.GRIPPER)
     
+    def move_home(self):
+        self.crimper_robot.move_home(tool=RobotTool.GRIPPER)
+    
     def exitRobot(self):
         self.crimper_robot.exitRobot()
     

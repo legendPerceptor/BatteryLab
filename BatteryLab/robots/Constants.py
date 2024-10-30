@@ -2,10 +2,12 @@ from enum import Enum
 from pydantic import BaseModel
 from typing import List
 
+
 class RobotTool(Enum):
     GRIPPER = 1
     SUCTION = 2
     CAMERA = 3
+
 
 class Meca500RobotConstants(BaseModel):
     GRIP_F: int = 10
@@ -18,31 +20,36 @@ class Meca500RobotConstants(BaseModel):
     HOME_GP_J: List[float] = [0, 0, 0, 0, 0, 0]
     HOME_SK_J: List[float] = [0, 0, 0, 0, 0, 0]
     HOME_CA_J: List[float] = [0, 0, 0, 0, 0, 0]
+
+
 class Components(Enum):
-    Anode_Case=1
-    Anode_Spacer=2
-    Anode=3
-    Separator=4
-    Cathode=5
-    Cathode_Spacer=6
-    Washer=7
-    Cathode_Case=8
+    CathodeCase = 1
+    Cathode = 2
+    Spacer = 3
+    Anode = 4
+    Washer = 5
+    Separator = 6
+    SpacerExtra = 7
+    AnodeCase = 8
+
 
 class AssemblySteps(Enum):
-    Grab=1
-    Drop=2
-    Press=3
-    Retrieve=4
-    Store=5
+    Grab = 1
+    Drop = 2
+    Press = 3
+    Retrieve = 4
+    Store = 5
 
-class ComponentProperty():
+
+class ComponentProperty:
     def __init__(self):
-        self.shape: List[int] = [4, 4] # the grabPo shape 
+        self.shape: List[int] = [4, 4]  # the grabPo shape
         self.railPo: List[float] = None
         self.dropPo: List[float] = None
         self.grabPo: List[List[float]] = None
 
-class AssemblyRobotCameraConstants():
+
+class AssemblyRobotCameraConstants:
     def __init__(self):
         self.HOME_J: List[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.TRF: List[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
@@ -56,25 +63,27 @@ class AssemblyRobotCameraConstants():
         self.Washer: dict = {}
         self.CathodeCase: dict = {}
 
-class CrimperRobotConstants(BaseModel):
-        TRF : List[float] = [20, 0, 95,  0,  0,  0]
-        Home : List[float] = [-45, 0, 0, 0, 45, 0]
-        PostReadyPose: List[float] = [-26.08631, 332.29777, 100, -90.00002, 0, 90]
-        PostDownPose: List[float] = [-26.08631, 332.29776, 70.09248, -90.00002, 0, 90]
-        GrabReadyPose: List[float] = [-26.08631, 322.62557, 70.09251, -90.00002, 0, 90]
-        GrabbedUpPose: List[float] = [-26.08631, 322.62556, 93.28549, -90.00002, 0, 90]
-        PhotoCheckPreparePose: List[float] = [213.81964, 69.62883, 148.54655, 0, 90, 0]
-        PhotoCheckPose: List[float] = [261.2986, 69.62884, 148.54655, 0, 90, 0]
-        CrimperReadyToOperatePose: List[float] = [1.40814, -193.09457, 340.27525, 90, 0, -90]
-        CrimperDropPose: List[float] = [1.40814, -281.92951, 340.27525, 90, 0, -90]
-        CrimperReadyToPickPose: List[float] = [1.40817, -292.28907, 339.06158, 90, 0, -90]
-        CrimperPickPressPose: List[float] = [1.40817, -292.28907, 333.83704, 90, 0, -90]
-        CrimperPickPose: List[float] = [1.40814, -281.92949, 331.8871, 90, 0, -90]
-        CrimperPickedUpPose: List[float] = [1.40814, -281.92949, 338.49117, 90, 0, -90]
-        StorageReadyPose: List[float] = [-88.25037, 258.84746, 138.26627, -90, -0.00001, 90]
-        StorageDropPose: List[float] = [-88.25037, 258.84746, 105.13378, -90, -0.00002, 90]
 
-class AssemblyRobotConstants():
+class CrimperRobotConstants(BaseModel):
+    TRF: List[float] = [20, 0, 95, 0, 0, 0]
+    Home: List[float] = [-45, 0, 0, 0, 45, 0]
+    PostReadyPose: List[float] = [0, 0, 0, 0, 0, 0]
+    PostDownPose: List[float] = [0, 0, 0, 0, 0, 0]
+    GrabReadyPose: List[float] = [0, 0, 0, 0, 0, 0]
+    GrabbedUpPose: List[float] = [0, 0, 0, 0, 0, 0]
+    PhotoCheckPreparePose: List[float] = [0, 0, 0, 0, 0, 0]
+    PhotoCheckPose: List[float] = [0, 0, 0, 0, 0, 0]
+    CrimperReadyToOperatePose: List[float] = [0, 0, 0, 0, 0, 0]
+    CrimperDropPose: List[float] = [0, 0, 0, 0, 0, 0]
+    CrimperReadyToPickPose: List[float] = [0, 0, 0, 0, 0, 0]
+    CrimperPickPressPose: List[float] = [0, 0, 0, 0, 0, 0]
+    CrimperPickPose: List[float] = [0, 0, 0, 0, 0, 0]
+    CrimperPickedUpPose: List[float] = [0, 0, 0, 0, 0, 0]
+    StorageReadyPose: List[float] = [0, 0, 0, 0, 0, 0]
+    StorageDropPose: List[float] = [0, 0, 0, 0, 0, 0]
+
+
+class AssemblyRobotConstants:
     def __init__(self):
         self.HOME_J = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.TRF = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
@@ -94,6 +103,7 @@ class AssemblyRobotConstants():
         self.SpacerExtra: dict = {}
         self.AnodeCase: dict = {}
 
+
 class StepCorrectionConfig(BaseModel):
     name: str
     diam: float
@@ -104,19 +114,128 @@ class StepCorrectionConfig(BaseModel):
     minR: int
     maxR: int
 
-class AutoCorrectionConfig():
+
+class AutoCorrectionConfig:
     def __init__(self):
-        self.CAM_PORT_BOTM:int = 1
-        self.CAM_PORT_TOP:int = 2
-        self.Anode_Drop=StepCorrectionConfig(name='Anode_Drop', diam=15, ksize=5, minDist=100, param1=100, param2=10, minR=80, maxR=85)
-        self.Anode_Grab=StepCorrectionConfig(name='Anode_Grab', diam=15, ksize=5, minDist=300, param1=120, param2=15, minR=115, maxR=135)
-        self.Cathode_Drop=StepCorrectionConfig(name='Cathode_Drop', diam=14, ksize=5, minDist=100, param1=100, param2=10, minR=75, maxR=80)
-        self.Cathode_Grab=StepCorrectionConfig(name='Cathode_Grab', diam=14, ksize=5, minDist=300, param1=120, param2=15, minR=115, maxR=125)
-        self.Separator_Drop=StepCorrectionConfig(name='Separator_Drop', diam=15.5, ksize=5, minDist=100, param1=120, param2=15, minR=85, maxR=93)
-        self.Separator_Grab=StepCorrectionConfig(name='Separator_Grab', diam=15.5, ksize=5, minDist=500, param1=120, param2=15, minR=135, maxR=145)
-        self.Anode_Spacer_Grab=StepCorrectionConfig(name='Anode_Spacer', diam=15.5, ksize=5, minDist=100, param1=120, param2=15, minR=135, maxR=140)
-        self.Cathode_Spacer_Grab=StepCorrectionConfig(name='Cathode_Spacer', diam=15.5, ksize=5, minDist=100, param1=120, param2=15, minR=135, maxR=140)
-        self.Cathode_Case_Grab=StepCorrectionConfig(name='Cathode_Case', diam=19.3, ksize=5, minDist=100, param1=120, param2=15, minR=187, maxR=195)
-        self.Reference=StepCorrectionConfig(name='Reference', diam=2, ksize=5, minDist=100, param1=120, param2=20, minR=8, maxR=15)
-        self.Suction_Cup=StepCorrectionConfig(name='Suction_Cup', diam=4, ksize=5, minDist=500, param1=120, param2=20, minR=50, maxR=60)
-        self.Customize=StepCorrectionConfig(name='Customize', diam=2, ksize=5, minDist=100, param1=100, param2=10, minR=110, maxR=115)
+        self.CAM_PORT_BOTM: int = 1
+        self.CAM_PORT_TOP: int = 2
+        self.Anode_Drop = StepCorrectionConfig(
+            name="Anode_Drop",
+            diam=15,
+            ksize=5,
+            minDist=100,
+            param1=100,
+            param2=10,
+            minR=80,
+            maxR=85,
+        )
+        self.Anode_Grab = StepCorrectionConfig(
+            name="Anode_Grab",
+            diam=15,
+            ksize=5,
+            minDist=300,
+            param1=120,
+            param2=15,
+            minR=115,
+            maxR=135,
+        )
+        self.Cathode_Drop = StepCorrectionConfig(
+            name="Cathode_Drop",
+            diam=14,
+            ksize=5,
+            minDist=100,
+            param1=100,
+            param2=10,
+            minR=75,
+            maxR=80,
+        )
+        self.Cathode_Grab = StepCorrectionConfig(
+            name="Cathode_Grab",
+            diam=14,
+            ksize=5,
+            minDist=300,
+            param1=120,
+            param2=15,
+            minR=115,
+            maxR=125,
+        )
+        self.Separator_Drop = StepCorrectionConfig(
+            name="Separator_Drop",
+            diam=15.5,
+            ksize=5,
+            minDist=100,
+            param1=120,
+            param2=15,
+            minR=85,
+            maxR=93,
+        )
+        self.Separator_Grab = StepCorrectionConfig(
+            name="Separator_Grab",
+            diam=15.5,
+            ksize=5,
+            minDist=500,
+            param1=120,
+            param2=15,
+            minR=135,
+            maxR=145,
+        )
+        self.Anode_Spacer_Grab = StepCorrectionConfig(
+            name="Anode_Spacer",
+            diam=15.5,
+            ksize=5,
+            minDist=100,
+            param1=120,
+            param2=15,
+            minR=135,
+            maxR=140,
+        )
+        self.Cathode_Spacer_Grab = StepCorrectionConfig(
+            name="Cathode_Spacer",
+            diam=15.5,
+            ksize=5,
+            minDist=100,
+            param1=120,
+            param2=15,
+            minR=135,
+            maxR=140,
+        )
+        self.Cathode_Case_Grab = StepCorrectionConfig(
+            name="Cathode_Case",
+            diam=19.3,
+            ksize=5,
+            minDist=100,
+            param1=120,
+            param2=15,
+            minR=187,
+            maxR=195,
+        )
+        self.Reference = StepCorrectionConfig(
+            name="Reference",
+            diam=2,
+            ksize=5,
+            minDist=100,
+            param1=120,
+            param2=20,
+            minR=8,
+            maxR=15,
+        )
+        self.Suction_Cup = StepCorrectionConfig(
+            name="Suction_Cup",
+            diam=4,
+            ksize=5,
+            minDist=500,
+            param1=120,
+            param2=20,
+            minR=50,
+            maxR=60,
+        )
+        self.Customize = StepCorrectionConfig(
+            name="Customize",
+            diam=2,
+            ksize=5,
+            minDist=100,
+            param1=100,
+            param2=10,
+            minR=110,
+            maxR=115,
+        )
