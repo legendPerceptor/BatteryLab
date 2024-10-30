@@ -73,6 +73,31 @@ class AssemblyRobot(Node):
             Components.AnodeCase.name: 0,
         }
 
+        self.counter_file = (
+            Path(get_package_share_path("assembly_robot"))
+            / "yaml"
+            / "assembly_counter.yml"
+        )
+
+    def save_counter_config(self):
+        with open(self.counter_file, "w") as f:
+            yaml.dump(self.component_current_counter_dict, f)
+
+    def load_counter_config(self):
+        if self.counter_file.exists():
+            with open(self.counter_file, "r") as f:
+                counter_dict_on_file = yaml.safe_load(f)
+            print("The current counter config on file: ", counter_dict_on_file)
+            user_input = input(
+                "Do you want to use the existing config? (Yes/No) Default is Yes:"
+            ).lower()
+            if user_input == "" or user_input == "yes":
+                self.component_current_counter_dict = counter_dict_on_file
+            else:
+                self.save_counter_config()
+        else:
+            print("You don't have an existing config, will start from scratch")
+
     def initialize_and_home_robots(self):
         self.load_position_files()
         ok = self.rail_meca500.initializeRobot()

@@ -107,6 +107,7 @@ class AutoBatteryLab(Node):
             return
         # 10. Crimper Robot
         self.crimper_robot.crimp_a_battery(False)
+        self.assembly_robot.save_counter_config()
 
 
 def command_loop(batterylab: AutoBatteryLab):
@@ -114,6 +115,7 @@ def command_loop(batterylab: AutoBatteryLab):
 [Liquid] to go to liquid_robot's command list, [Crimper] to go to crimper_robot's command list.
 [A] to finish assemble a battery from scratch to storage.
 :> """
+    batterylab.assembly_robot.load_counter_config()
     while True:
         user_input = input(prompt)
         if user_input == "":
