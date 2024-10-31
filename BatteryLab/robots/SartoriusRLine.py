@@ -163,27 +163,12 @@ class SartoriusRLine(SartoriusRLineInterface):
         else:
             print("Error code unrecognized!")
 
-    def waitAck(self, ans):
-        char = self.serial.read(1)
-        answer = str(char)
-        while char:
-            char = self.serial.read(1)
-            answer += str(char)
-        self.logger.debug(answer)
-        if ans in answer:
-            self.logger.debug("Acknowledge received")
-            return (True, len(answer))
-        else:
-            self.logger.debug("nack received")
-            self.parseError(answer)
-            return (False, len(answer))
-
     def readFeedback(self):
         content = self.serial.read_until(b"\r")
         return content
 
     def check_connection(self):
-        return self.serial.isOpen()
+        return self.serial.is_open()
 
     def sendCmd(self, cmd, pos=1):
         if cmd in REGULAR_COMMANDS.keys():
@@ -202,6 +187,7 @@ class SartoriusRLine(SartoriusRLineInterface):
             res = self.serial.read_until(b"\r")
             while not DISPLAY_COMMANDS[cmd][1] in res:
                 res = self.serial.read_until(b"\r")
+            print("display result:", res)
             return int(res[4:-2])
         elif cmd in POSITIONAL_COMMANDS.keys():
             msg = (
@@ -218,6 +204,15 @@ class SartoriusRLine(SartoriusRLineInterface):
                 self.parseError(res)
             elif POSITIONAL_COMMANDS[cmd][1] in res:
                 return (True, POSITIONAL_COMMANDS[cmd][0])
+
+    def waitForReadyState(self):
+        ready = False
+        while not ready:
+            response = self.sendCmd("DISPLAY_STATUS")
+            if response == 0:
+                ready = True
+                return
+            time.sleep(0.5)
 
     def tellPosition(self):
         response = self.sendCmd("DISPLAY_POSITION")
@@ -291,15 +286,18 @@ def sartorius_example_app():
     if not ok:
         print("Cannot connect to Sartorius rLine.")
         exit()
+
+    prompt = """
+Press [Enter] to quit.
+[B] to blow out all liquid.
+[E] to eject pipette.
+[A] to aspirate liquid.
+[D] to dispense liquid.
+[W] to wait for ready status.
+>:"""
     try:
         while True:
-            input_str = (
-                input(
-                    "Press [Enter] to quit, [B] to blow out all liquid, [E] to eject pipette,\n[A] to aspirate liquid, [D] to dispense liquid:"
-                )
-                .strip()
-                .upper()
-            )
+            input_str = input(prompt).strip().upper()
             if input_str == "":
                 break
             elif input_str == "B":
@@ -312,6 +310,8 @@ def sartorius_example_app():
             elif input_str == "D":
                 volume = float(input("Please input the volume to dispense: ").strip())
                 sartorius_rline.dispense(volume)
+            elif input_str == "W":
+                sartorius_rline.waitForReadyState()
             else:
                 print("Invalid input. Please enter a valid option.")
     except KeyboardInterrupt:
