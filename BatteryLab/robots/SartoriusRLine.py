@@ -168,13 +168,12 @@ class SartoriusRLine(SartoriusRLineInterface):
         return content
 
     def check_connection(self):
-        return self.serial.is_open()
+        return self.serial.is_open
 
     def sendCmd(self, cmd, pos=1):
         if cmd in REGULAR_COMMANDS.keys():
             msg = PRE + str.encode(ADR) + REGULAR_COMMANDS[cmd][0] + POST
             self.serial.write(msg)
-            # time.sleep(0.05)
             res = self.serial.read_until(b"\r")
             if b"er" in res:
                 self.parseError(res)
@@ -183,11 +182,9 @@ class SartoriusRLine(SartoriusRLineInterface):
         elif cmd in DISPLAY_COMMANDS.keys():
             msg = PRE + str.encode(ADR) + DISPLAY_COMMANDS[cmd][0] + POST
             self.serial.write(msg)
-            # time.sleep(0.05)
             res = self.serial.read_until(b"\r")
             while not DISPLAY_COMMANDS[cmd][1] in res:
                 res = self.serial.read_until(b"\r")
-            print("display result:", res)
             return int(res[4:-2])
         elif cmd in POSITIONAL_COMMANDS.keys():
             msg = (
@@ -198,7 +195,6 @@ class SartoriusRLine(SartoriusRLineInterface):
                 + POST
             )
             self.serial.write(msg)
-            # time.sleep(0.05)
             res = self.serial.read_until(b"\r")
             if b"er" in res:
                 self.parseError(res)
@@ -216,12 +212,12 @@ class SartoriusRLine(SartoriusRLineInterface):
 
     def tellPosition(self):
         response = self.sendCmd("DISPLAY_POSITION")
-        time.sleep(3)
+        self.waitForReadyState()
         return response
 
     def tellLevel(self):
         response = self.sendCmd("DISPLAY_LIQUID_LEVEL")
-        time.sleep(3)
+        self.waitForReadyState()
         return response
 
     def initiate_rline(self):
@@ -229,29 +225,29 @@ class SartoriusRLine(SartoriusRLineInterface):
         if not con_res:
             self.serial.open()
             con_res = self.check_connection()
-        time.sleep(0.2)
         home_res = self.sendCmd("RESET")
-        time.sleep(5)
+        self.waitForReadyState()
         speed1_res = self.sendCmd("INWARD_SPEED_3")
-        time.sleep(1)
+        self.waitForReadyState()
         speed2_res = self.sendCmd("OUTWARD_SPEED_3")
+        self.waitForReadyState()
         response_list = [con_res, home_res[0], speed1_res[0], speed2_res[0]]
         print(response_list)
         return all(response_list)
 
     def aspirate(self, volume):
         response = self.sendCmd("RUN_INWARDS", round(volume))
-        time.sleep(5)
+        self.waitForReadyState()
         return response
 
     def dispense(self, volume):
         response = self.sendCmd("RUN_OUTWARDS", round(volume))
-        time.sleep(5)
+        self.waitForReadyState()
         return response
 
     def clear_and_reset(self):
         response = self.sendCmd("BLOWOUT_AND_MOVE", 30)
-        time.sleep(3)
+        self.waitForReadyState()
         return response
 
     def reset(self):
@@ -259,17 +255,17 @@ class SartoriusRLine(SartoriusRLineInterface):
 
     def blowout(self):
         response = self.sendCmd("RUN_BLOWOUT")
-        time.sleep(3)
+        self.waitForReadyState()
         return response
 
     def eject(self):
         response = self.sendCmd("RUN_TIP_EJECT_CYCLE")
-        time.sleep(3)
+        self.waitForReadyState()
         return response
 
     def eject_and_home(self):
         response = self.sendCmd("EJECT_AND_HOME")
-        time.sleep(3)
+        self.waitForReadyState()
         return response
 
     def disconnect(self):
