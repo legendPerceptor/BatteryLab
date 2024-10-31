@@ -91,13 +91,32 @@ class RailMeca500(Meca500):
         # Linearly moving down to grab the component and go back
         self.robot.Delay(0.5)
         self.robot.SetCartLinVel(self.RobotConstants.L_VEL)
-        self.robot.MoveLin(*grab_pos)
-        self.robot.WaitIdle()
         if is_grab:
+            self.robot.MoveLin(*grab_pos)
+            self.robot.WaitIdle()
             self.smart_grab()
         else:
+            self.robot.MoveLin(
+                grab_pos[0],
+                grab_pos[1],
+                grab_pos[2] + 3,  # slightly higher to avoid stickiness
+                grab_pos[3],
+                grab_pos[4],
+                grab_pos[5],
+            )
+            self.robot.WaitIdle()
             self.smart_drop()
-        self.robot.Delay(1)
+            self.robot.SetCartLinVel(self.RobotConstants.L_VEL + 250)
+            self.robot.MoveLin(
+                grab_pos[0],
+                grab_pos[1],
+                grab_pos[2] + 15,
+                grab_pos[3],
+                grab_pos[4],
+                grab_pos[5],
+            )
+            self.robot.WaitIdle()
+            self.robot.SetCartLinVel(self.RobotConstants.L_VEL)
         self.robot.MoveLin(
             grab_pos[0],
             grab_pos[1],
