@@ -10,3 +10,4 @@ rosdep
 lark
 empy
 matplotlib
+scipy

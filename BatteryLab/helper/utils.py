@@ -145,6 +145,10 @@ def draw_calculated_points(pos_list, m, n, file_name: str = "generated_points"):
     plt.close(fig)
 
 
+import numpy as np
+from scipy.spatial.transform import Rotation as R
+
+
 def get_m_n_well_pos(
     bottom_left_coordinates,
     bottom_right_coordinates,
@@ -155,32 +159,46 @@ def get_m_n_well_pos(
     num_of_joints=6,
     name: str = "default",
 ):
-    # Ensure inputs are numpy arrays
-    P_TL = np.array(top_left_coordinates)
-    P_TR = np.array(top_right_coordinates)
-    P_BL = np.array(bottom_left_coordinates)
-    P_BR = np.array(bottom_right_coordinates)
+    # Separate positions and orientations
+    pos_TL, rot_TL = np.array(top_left_coordinates[:3]), R.from_euler(
+        "xyz", top_left_coordinates[3:]
+    )
+    pos_TR, rot_TR = np.array(top_right_coordinates[:3]), R.from_euler(
+        "xyz", top_right_coordinates[3:]
+    )
+    pos_BL, rot_BL = np.array(bottom_left_coordinates[:3]), R.from_euler(
+        "xyz", bottom_left_coordinates[3:]
+    )
+    pos_BR, rot_BR = np.array(bottom_right_coordinates[:3]), R.from_euler(
+        "xyz", bottom_right_coordinates[3:]
+    )
 
-    # Initialize the array to store positions for each well
     well_positions = np.zeros(
         (m, n, num_of_joints)
     )  # m x n grid with 6 values (x, y, z, rx, ry, rz)
 
-    # Iterate over the grid and calculate bilinear interpolation for each point
     pos_list = []
     for i in range(m):
         for j in range(n):
-            # Scale i and j to be between 0 and 1
             scaled_i = i / (m - 1)
             scaled_j = j / (n - 1)
 
-            # Bilinear interpolation formula
-            well_positions[i, j] = (
-                (1 - scaled_i) * (1 - scaled_j) * P_TL
-                + scaled_i * (1 - scaled_j) * P_TR
-                + (1 - scaled_i) * scaled_j * P_BL
-                + scaled_i * scaled_j * P_BR
+            # Interpolate positions linearly
+            interpolated_position = (
+                (1 - scaled_i) * (1 - scaled_j) * pos_TL
+                + scaled_i * (1 - scaled_j) * pos_TR
+                + (1 - scaled_i) * scaled_j * pos_BL
+                + scaled_i * scaled_j * pos_BR
             )
+
+            # Spherical linear interpolation (slerp) for rotations
+            interp_rot_top = R.slerp(rot_TL, rot_TR, scaled_i)
+            interp_rot_bottom = R.slerp(rot_BL, rot_BR, scaled_i)
+            interpolated_rotation = R.slerp(interp_rot_top, interp_rot_bottom, scaled_j)
+
+            # Convert rotation back to Euler angles
+            euler_angles = interpolated_rotation.as_euler("xyz")
+            well_positions[i, j] = np.concatenate((interpolated_position, euler_angles))
             pos_list.append(list(well_positions[i, j]))
 
     draw_calculated_points(pos_list, m, n, name)
