@@ -149,6 +149,37 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 
 
+def slerp(start, end, t):
+    """Perform spherical linear interpolation (slerp) between two rotations."""
+    start_quat = start.as_quat()
+    end_quat = end.as_quat()
+    dot_product = np.dot(start_quat, end_quat)
+
+    # Adjust for shortest path and ensure continuity
+    if dot_product < 0.0:
+        end_quat = -end_quat
+        dot_product = -dot_product
+
+    # If the two quaternions are very close, we use linear interpolation
+    if dot_product > 0.9995:
+        interp_quat = (1.0 - t) * start_quat + t * end_quat
+        interp_quat /= np.linalg.norm(interp_quat)
+    else:
+        theta_0 = np.arccos(dot_product)
+        sin_theta_0 = np.sin(theta_0)
+
+        theta = theta_0 * t
+        sin_theta = np.sin(theta)
+
+        s1 = np.sin(theta_0 - theta) / sin_theta_0
+        s2 = sin_theta / sin_theta_0
+
+        interp_quat = s1 * start_quat + s2 * end_quat
+
+    return R.from_quat(interp_quat)
+
+
+# Integrate slerp in the original function
 def get_m_n_well_pos(
     bottom_left_coordinates,
     bottom_right_coordinates,
@@ -159,7 +190,6 @@ def get_m_n_well_pos(
     num_of_joints=6,
     name: str = "default",
 ):
-    # Separate positions and orientations
     pos_TL, rot_TL = np.array(top_left_coordinates[:3]), R.from_euler(
         "xyz", top_left_coordinates[3:]
     )
@@ -173,9 +203,7 @@ def get_m_n_well_pos(
         "xyz", bottom_right_coordinates[3:]
     )
 
-    well_positions = np.zeros(
-        (m, n, num_of_joints)
-    )  # m x n grid with 6 values (x, y, z, rx, ry, rz)
+    well_positions = np.zeros((m, n, num_of_joints))
 
     pos_list = []
     for i in range(m):
@@ -183,7 +211,6 @@ def get_m_n_well_pos(
             scaled_i = i / (m - 1)
             scaled_j = j / (n - 1)
 
-            # Interpolate positions linearly
             interpolated_position = (
                 (1 - scaled_i) * (1 - scaled_j) * pos_TL
                 + scaled_i * (1 - scaled_j) * pos_TR
@@ -191,12 +218,10 @@ def get_m_n_well_pos(
                 + scaled_i * scaled_j * pos_BR
             )
 
-            # Spherical linear interpolation (slerp) for rotations
-            interp_rot_top = R.slerp(rot_TL, rot_TR, scaled_i)
-            interp_rot_bottom = R.slerp(rot_BL, rot_BR, scaled_i)
-            interpolated_rotation = R.slerp(interp_rot_top, interp_rot_bottom, scaled_j)
+            interp_rot_top = slerp(rot_TL, rot_TR, scaled_i)
+            interp_rot_bottom = slerp(rot_BL, rot_BR, scaled_i)
+            interpolated_rotation = slerp(interp_rot_top, interp_rot_bottom, scaled_j)
 
-            # Convert rotation back to Euler angles
             euler_angles = interpolated_rotation.as_euler("xyz")
             well_positions[i, j] = np.concatenate((interpolated_position, euler_angles))
             pos_list.append(list(well_positions[i, j]))
