@@ -373,18 +373,37 @@ def get_component_location_from_user(robot, component_prompt):
             f"The selected component <{component_name}> has not been manually positioned yet!"
         )
         exit()
-    sub_location = input(f"Which corner do you want to test ({available_locations}): ")
-    if sub_location not in available_locations:
+    sub_location = input(
+        f"Which corner do you want to test (all, {available_locations}): "
+    )
+    result = []
+    if sub_location == "all":
+        for sub_location in available_locations:
+            location = component[sub_location]
+            result.append(
+                (
+                    location.shape,
+                    location.grabPo,
+                    location.railPo,
+                    sub_location,
+                    component_name,
+                )
+            )
+    elif sub_location not in available_locations:
         print("The sublocation you pick is not valid!")
         exit()
-    location = component[sub_location]
-    return (
-        location.shape,
-        location.grabPo,
-        location.railPo,
-        sub_location,
-        component_name,
-    )
+    else:
+        location = component[sub_location]
+        result.append(
+            (
+                location.shape,
+                location.grabPo,
+                location.railPo,
+                sub_location,
+                component_name,
+            )
+        )
+    return result
 
 
 def get_location_index_from_user(shape, sub_location):
@@ -427,24 +446,32 @@ def assembly_robot_command_loop(
             robot.move_home_and_out_of_way()
         elif input_str == "S":
             # Test the components pick-up and put them back
-            shape, grabpos, railpos, sub_location, component_name = (
-                get_component_location_from_user(robot, component_prompt)
-            )
-            test_range = [0, shape[1] - 1, (shape[0] - 1) * shape[1], len(grabpos) - 1]
-            print("The test range: []")
+            results = get_component_location_from_user(robot, component_prompt)
             test_all = input(
                 f"Do you want to test the four corners or test all? (all/corners) default is corners:"
             )
-            if test_all == "all":
-                test_range = range(0, len(grabpos))
-            for i in test_range:
-                print(f"reaching the position of well {i}: {grabpos[i]}")
-                robot.grab_component(
-                    railpos, grabpos[i], is_grab=True, component_name=component_name
-                )
-                robot.grab_component(
-                    railpos, grabpos[i], is_grab=False, component_name=component_name
-                )
+            for shape, grabpos, railpos, sub_location, component_name in results:
+                test_range = [
+                    0,
+                    shape[1] - 1,
+                    (shape[0] - 1) * shape[1],
+                    len(grabpos) - 1,
+                ]
+                print(f"The test range: {test_range}")
+
+                if test_all == "all":
+                    test_range = range(0, len(grabpos))
+                for i in test_range:
+                    print(f"reaching the position of well {i}: {grabpos[i]}")
+                    robot.grab_component(
+                        railpos, grabpos[i], is_grab=True, component_name=component_name
+                    )
+                    robot.grab_component(
+                        railpos,
+                        grabpos[i],
+                        is_grab=False,
+                        component_name=component_name,
+                    )
         elif input_str == "C":
             # Take a photo of the selected tray
             component_name = input(component_prompt)
@@ -456,9 +483,13 @@ def assembly_robot_command_loop(
             cv2.imwrite(image_file, image)
         elif input_str == "M":
             # Move the component to the assembly post
-            shape, grabpos, railpos, sub_location, component_name = (
-                get_component_location_from_user(robot, component_prompt)
-            )
+            results = get_component_location_from_user(robot, component_prompt)
+            if len(results) != 1:
+                print(
+                    "You can only move one component to the assembly post at a time. Operation aborted!"
+                )
+                continue
+            shape, grabpos, railpos, sub_location, component_name = results[0]
             index = get_location_index_from_user(shape, sub_location)
             if index >= 0 and index < len(grabpos):
                 robot.grab_component(
@@ -470,9 +501,11 @@ def assembly_robot_command_loop(
                 continue
         elif input_str == "G":
             # Grab a compoent or put it back
-            shape, grabpos, railpos, sub_location, component_name = (
-                get_component_location_from_user(robot, component_prompt)
-            )
+            results = get_component_location_from_user(robot, component_prompt)
+            if len(results) != 1:
+                print("You can only grab one component at a time. Operation aborted!")
+                continue
+            shape, grabpos, railpos, sub_location, component_name = results[0]
             index = get_location_index_from_user(shape, sub_location)
             if not (index >= 0 and index < len(grabpos)):
                 print("The index you give is not valid for the robot to grab!")
@@ -488,9 +521,11 @@ def assembly_robot_command_loop(
 
         elif input_str == "Z":
             # Manual adjustment for well positions.
-            shape, grabpos, railpos, sub_location, component_name = (
-                get_component_location_from_user(robot, component_prompt)
-            )
+            results = get_component_location_from_user(robot, component_prompt)
+            if len(results) != 1:
+                print("You can only adjust one component at a time. Operation aborted!")
+                continue
+            shape, grabpos, railpos, sub_location, component_name = results[0]
             index = get_location_index_from_user(shape, sub_location)
             if not (index >= 0 and index < len(grabpos)):
                 print("The index you give is not valid to do manual adjustment!")
@@ -508,9 +543,10 @@ def assembly_robot_command_loop(
             robot.rail_meca500.move_home()
         elif input_str == "L":
             # Move a component to the lookup camera for a picture
-            shape, grabpos, railpos, sub_location, component_name = (
-                get_component_location_from_user(robot, component_prompt)
-            )
+            results = get_component_location_from_user(robot, component_prompt)
+            if len(results) != 1:
+                print("You can only move one component at a time. Operation aborted!")
+                continue
             index = get_location_index_from_user(shape, sub_location)
             if not (index >= 0 and index < len(grabpos)):
                 print("The index you give is not valid for the robot to grab!")

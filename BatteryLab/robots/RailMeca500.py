@@ -99,13 +99,14 @@ class RailMeca500(Meca500):
             self.robot.MoveLin(
                 grab_pos[0],
                 grab_pos[1],
-                grab_pos[2] + 3,  # slightly higher to avoid stickiness
+                grab_pos[2] + 1.5,  # slightly higher to avoid stickiness
                 grab_pos[3],
                 grab_pos[4],
                 grab_pos[5],
             )
             self.robot.WaitIdle()
             self.smart_drop()
+            self.robot.Delay(2)
             self.robot.SetCartLinVel(self.RobotConstants.L_VEL + 250)
             self.robot.MoveLin(
                 grab_pos[0],
