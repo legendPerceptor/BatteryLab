@@ -107,6 +107,8 @@ class AutoBatteryLab(Node):
             return
         # 10. Crimper Robot
         self.crimper_robot.crimp_a_battery(False)
+        self.crimper_robot.put_to_storage()
+        self.crimper_robot.move_home()
         self.assembly_robot.save_counter_config()
 
 

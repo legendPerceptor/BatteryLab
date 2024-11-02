@@ -50,11 +50,13 @@ class CrimperRobot(Node):
                 print("The battery is not picked up!")
                 self.logger.error("The battery is not picked up properly")
                 return
+        self.logger.info("Finished crimping a battery!")
+
+    def put_to_storage(self):
         self.crimper_robot.put_to_storage()
-        self.move_home()
-        self.logger.info(
-            "Finished crimping a battery and stored it to the storage post!"
-        )
+
+    def drop_back_to_assembly_post(self):
+        self.crimper_robot.drop_back_to_assembly_post()
 
     def check_battery_is_picked(self) -> bool:
         self.crimper_robot.move_for_photo_check()
@@ -70,10 +72,15 @@ class CrimperRobot(Node):
 
 
 def crimper_robot_command_loop(robot: CrimperRobot):
-    prompt = """Press [Enter] to quit, [P] to pick up from the post,
-[C] to drop the battery to the crimper, [D] to pick the battery up from the crimper
-[S] to store the battery in the storage post. [A] to run the whole process
-[T] to move to the camera tower and see the picture
+    prompt = """Press [Enter] to quit.
+[P] to pick up from the post.
+[C] to drop the battery to the crimper.
+[D] to pick the battery up from the crimper
+[S] to store the battery in the storage post.
+[B] to put the battery back to the assembly post.
+[G] to grab from the post, do the crimping and put back to the post.
+[A] to run the whole process and store the battery in storage post.
+[T] to move to the camera tower and see the picture.
 :> """
 
     while True:
@@ -88,17 +95,24 @@ def crimper_robot_command_loop(robot: CrimperRobot):
             robot.crimper_robot.pick_up_from_crimper()
         elif input_str == "S":
             robot.crimper_robot.put_to_storage()
+        elif input_str == "G":
+            robot.crimp_a_battery(False)
+            robot.drop_back_to_assembly_post()
+            robot.move_home()
         elif input_str == "T":
             is_picked = robot.check_battery_is_picked()
             print(f"The battery is picked: {is_picked}")
         elif input_str == "A":
             use_camera = input(
-                "Do you want to use camera_check? (yes/no), default is yes"
+                "Do you want to use camera_check? (yes/no), default is yes:"
             )
             if use_camera == "" or use_camera == "yes":
                 robot.crimp_a_battery(use_camera_check=True)
             else:
                 robot.crimp_a_battery(use_camera_check=False)
+
+            robot.put_to_storage()
+            robot.move_home()
         else:
             print("The command you gave is not recognized!")
     robot.crimper_robot.move_home(tool=RobotTool.GRIPPER)
