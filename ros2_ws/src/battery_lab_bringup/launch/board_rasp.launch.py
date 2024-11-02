@@ -27,7 +27,7 @@ def generate_launch_description():
                 name="linear_rail_server",
                 output="screen",
                 parameters=[
-                    {"rail_velocity_mm_s", LaunchConfiguration("rail_velocity_mm_s")}
+                    {"rail_velocity_mm_s": LaunchConfiguration("rail_velocity_mm_s")}
                 ],
             ),
             Node(
