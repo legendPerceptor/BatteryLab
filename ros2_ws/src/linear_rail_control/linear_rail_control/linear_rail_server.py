@@ -21,7 +21,7 @@ class LinearRailServer(Node):
                 "The server has successfully connected to the Zaber linear rail!"
             )
 
-        self.declare_parameter("rail_velocity_mm_s", 0)
+        self.declare_parameter("rail_velocity_mm_s", 0.0)
         self.linear_rail_velocity = (
             self.get_parameter("rail_velocity_mm_s").get_parameter_value().double_value
         )
