@@ -66,7 +66,7 @@ class AssemblyRobotCameraConstants:
 
 class CrimperRobotConstants(BaseModel):
     TRF: List[float] = [20, 0, 95, 0, 0, 0]
-    Home: List[float] = [-45, 0, 0, 0, 45, 0]
+    Home: List[float] = [-60, 0, 0, 0, 30, 0]
     PostReadyPose: List[float] = [0, 0, 0, 0, 0, 0]
     PostDownPose: List[float] = [0, 0, 0, 0, 0, 0]
     GrabReadyPose: List[float] = [0, 0, 0, 0, 0, 0]
