@@ -1,6 +1,8 @@
 from zaber_motion import Library, DeviceDbSourceType, Units, MotionLibException
 from zaber_motion.ascii import Connection
-from zaber_motion.exceptions.connection_failed_exception import ConnectionFailedException
+from zaber_motion.exceptions.connection_failed_exception import (
+    ConnectionFailedException,
+)
 
 import serial
 import os
@@ -8,6 +10,7 @@ from pathlib import Path
 
 from ..helper.Logger import Logger
 from ..helper.utils import get_proper_port_for_device, SupportedDevices
+
 
 class ZaberRailConnectionError(Exception):
     def __init__(self, message, error_code):
@@ -17,18 +20,21 @@ class ZaberRailConnectionError(Exception):
     def __str__(self):
         return f"{self.args[0]} (Error code: {self.error_code})"
 
-class ZaberRail():
+
+class ZaberRail:
     def __init__(self, port):
         Library.enable_device_db_store("./device-db-store")
         self.device = None
         self.axis = None
         self.connection = None
-        self.logger = Logger("Zaber-X-LRT1500BL-E08C", Path(os.getcwd())/"logs", "zaber.log")
+        self.logger = Logger(
+            "Zaber-X-LRT1500BL-E08C", Path(os.getcwd()) / "logs", "zaber.log"
+        )
         self.port = port
 
     def __del__(self):
         self.disconnect()
-    
+
     def disconnect(self):
         if self.connection is not None:
             self.connection.close()
@@ -50,13 +56,15 @@ class ZaberRail():
         if not self.axis.is_homed():
             self.axis.home()
         return True
-    
+
     def print_io_info(self):
         if self.device is None:
             ok = self.connect()
             if not ok:
                 print("zaber rail cannot be connected!")
-                raise ZaberRailConnectionError("ZaberRail Connection failed when getting I/O info", 1000)
+                raise ZaberRailConnectionError(
+                    "ZaberRail Connection failed when getting I/O info", 1000
+                )
         io_info = self.device.io.get_channels_info()
         print("Number of analog outputs:", io_info.number_analog_outputs)
         print("Number of analog inputs:", io_info.number_analog_inputs)
@@ -86,36 +94,54 @@ class ZaberRail():
             ok = self.connect()
             if not ok:
                 print("Cannot insure zaber rail is conected")
-                raise ZaberRailConnectionError("Cannot insure zaber rail is conected", 1001)
+                raise ZaberRailConnectionError(
+                    "Cannot insure zaber rail is conected", 1001
+                )
 
-    def move(self, pos_abs):
+    def move(self, pos_abs, velocity: float = 0.0):
         self.insure_connected()
         pos_cur = self.axis.get_position(Units.LENGTH_CENTIMETRES)
-        self.logger.debug(f"[REL_MOVE] current pos: {pos_cur} cm, moving to the absolute position: {pos_abs}")
-        self.axis.move_absolute(pos_abs, Units.LENGTH_CENTIMETRES)
+        self.logger.debug(
+            f"[REL_MOVE] current pos: {pos_cur} cm, moving to the absolute position: {pos_abs}"
+        )
+        self.axis.move_absolute(
+            pos_abs,
+            Units.LENGTH_CENTIMETRES,
+            velocity=velocity,
+            velocity_unit=Units.VELOCITY_MILLIMETRES_PER_SECOND,
+        )
 
-    def rel_move(self, pos_rel):
+    def rel_move(self, pos_rel, velocity: float = 0.0):
         self.insure_connected()
         pos_cur = self.axis.get_position(Units.LENGTH_CENTIMETRES)
-        self.logger.debug(f"[REL_MOVE] current pos: {pos_cur} cm, relatively moving {pos_rel}")
-        self.axis.move_relative(pos_rel)
+        self.logger.debug(
+            f"[REL_MOVE] current pos: {pos_cur} cm, relatively moving {pos_rel}"
+        )
+        self.axis.move_relative(
+            pos_rel,
+            velocity=velocity,
+            velocity_unit=Units.VELOCITY_MILLIMETRES_PER_SECOND,
+        )
 
     def get_cur_position(self):
         self.insure_connected()
         return self.axis.get_position(Units.LENGTH_CENTIMETRES)
 
+
 # below are for testing the zaber rail standalone.
+
 
 def drive_rail(rail):
     while True:
         pos = input("Type in Abs position, Press [Enter] to quit: ")
-        if pos == '':
+        if pos == "":
             break
         try:
             pos = float(pos)
             rail.move(pos)
         except ValueError:
             print("Invalid input. Please enter a valid position value.")
+
 
 def zaber_cli_app():
     selected_port = get_proper_port_for_device(SupportedDevices.ZaberLinearRail)
@@ -126,13 +152,19 @@ def zaber_cli_app():
         exit()
     try:
         while True:
-            input_str = input("Press [Enter] to quit, [0] to home the rail, [M] to drive rail: ").strip().lower()
-            if input_str == '':
+            input_str = (
+                input(
+                    "Press [Enter] to quit, [0] to home the rail, [M] to drive rail: "
+                )
+                .strip()
+                .lower()
+            )
+            if input_str == "":
                 break
-            elif input_str == '0':
+            elif input_str == "0":
                 zaber_rail.axis.home()
                 break
-            elif input_str == 'm':
+            elif input_str == "m":
                 drive_rail(zaber_rail)
             else:
                 print("Invalid input. Please enter a valid option.")

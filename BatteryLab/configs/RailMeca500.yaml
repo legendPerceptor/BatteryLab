@@ -1,6 +1,6 @@
 GRIP_F: 5
 GRIP_VEL: 20
-L_VEL: 10
+L_VEL: 50
 J_VEL: 50
 TCP_GP: [60.0, 0, 0, 0, 0, 0]
 TCP_SK: [43, 12.0, 75.734, 0, 45, 0]
