@@ -26,6 +26,10 @@ class LinearRailServer(Node):
             self.get_parameter("rail_velocity_mm_s").get_parameter_value().double_value
         )
 
+        self.get_logger().info(
+            f"The linear rail service speed is {self.linear_rail_velocity} mm/s"
+        )
+
         self.move_linear_rail_srv = self.create_service(
             MoveLinearRail, "/zaber/move_linear_rail", self.move_linear_rail_callback
         )
