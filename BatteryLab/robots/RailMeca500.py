@@ -111,6 +111,33 @@ class RailMeca500(Meca500):
             self.robot.MoveLin(
                 grab_pos[0],
                 grab_pos[1],
+                grab_pos[2] + 3,
+                grab_pos[3],
+                grab_pos[4],
+                grab_pos[5],
+            )
+            self.robot.WaitIdle()
+            self.robot.MoveLin(
+                grab_pos[0],
+                grab_pos[1],
+                grab_pos[2] + 1.5,
+                grab_pos[3],
+                grab_pos[4],
+                grab_pos[5],
+            )
+            self.robot.WaitIdle()
+            self.robot.MoveLin(
+                grab_pos[0],
+                grab_pos[1],
+                grab_pos[2] + 4,
+                grab_pos[3],
+                grab_pos[4],
+                grab_pos[5],
+            )
+            self.robot.WaitIdle()
+            self.robot.MoveLin(
+                grab_pos[0],
+                grab_pos[1],
                 grab_pos[2] + 15,
                 grab_pos[3],
                 grab_pos[4],
