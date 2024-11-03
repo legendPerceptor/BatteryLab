@@ -95,6 +95,7 @@ class RailMeca500(Meca500):
             self.robot.MoveLin(*grab_pos)
             self.robot.WaitIdle()
             self.smart_grab()
+            self.robot.Delay(1)
         else:
             self.robot.MoveLin(
                 grab_pos[0],

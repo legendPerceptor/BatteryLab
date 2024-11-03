@@ -104,6 +104,15 @@ class AssemblyRobot(Node):
         if not ok:
             print("The Meca500 cannot be connected")
             exit()
+        self.logger.info("Start testing the gripper!")
+        self.rail_meca500.robot.SetGripperForce(5)
+        self.rail_meca500.robot.GripperOpen()
+        self.rail_meca500.robot.WaitGripperMoveCompletion(5)
+        self.rail_meca500.robot.GripperClose()
+        self.rail_meca500.robot.WaitGripperMoveCompletion(5)
+        self.rail_meca500.robot.GripperOpen()
+        self.rail_meca500.robot.WaitGripperMoveCompletion(5)
+        self.logger.info("The gripper is functioning properly!")
 
     def get_rail_pos(self) -> float:
         future = self.zaber_rail.send_get_pos_request()
