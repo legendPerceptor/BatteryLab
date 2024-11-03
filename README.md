@@ -4,7 +4,7 @@ We aim to build an autonomous laboratory for manufacturing coin-cell batteries. 
 
 <figure>
   <img
-  src="figures/Overview.png"
+  src="figures/LabOverview.png"
   alt="The BatteryLab Design">
   <figcaption>Figure 1. The physical design of the autonomous BatteryLab</figcaption>
 </figure>
