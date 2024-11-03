@@ -1,19 +1,21 @@
 TRF: [0, 55, 70, 0, 30, 0]
 Home: [0, 0, 0, 0, 60 ,0]
 RobotPose:
-  cartesian: [177.40324, 55, 208.15256, 180, 0, 180]
-  joints: [0, -1.50672, -9.1021, 0, 70.60881, 0]
+  cartesian: [146.73001, 55, 208.15256, 180, 0, 180]
 CathodeCase:
-  rail_pos: 0.0
+  rail_pos: 5.0
 Cathode:
-  rail_pos: 19.0
-Separator:
-  rail_pos: 42.0
-Anode:
-  rail_pos: 65.0
-Washer:
-  rail_pos: 91.0
+  rail_pos: 28.0
 Spacer:
-  rail_pos: 114.0
+  rail_pos: 51.0
+Anode:
+  rail_pos: 74.0
+Washer:
+  rail_pos: 95.0
+Separator:
+  rail_pos: 118.0
+SpacerExtra:
+  rail_pos: 141.0
 AnodeCase:
-  rail_pos: 137.0
+  rail_pos: 148.0
+  cartesian: [146.73002, -95.92129, 208.15256, 180, 0, -180]

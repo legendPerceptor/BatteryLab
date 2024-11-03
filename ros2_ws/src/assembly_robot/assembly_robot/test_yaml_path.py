@@ -14,9 +14,12 @@ def main():
             print("Cannot load the YAML file with error: ", e)
     
     print(constant_positions)
-    assemble_post = constant_positions["AessemblePost"]
+    assemble_post = constant_positions["AssemblePost"]
     print(assemble_post["rail_pos"])
-    print(assemble_post["cartesian"])
+    print(assemble_post['suction']["cartesian"])
+
+    print('shape' in constant_positions['Washer']['top_right_box'])
+    print('shape' in constant_positions['Cathode']['top_right_box'])
     rclpy.shutdown()
 
 if __name__ == '__main__':

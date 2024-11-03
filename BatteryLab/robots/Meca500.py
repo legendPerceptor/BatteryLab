@@ -26,6 +26,7 @@ class Meca500():
         self.logger = Logger("Meca500", log_path=log_path, logger_filename=logger_filename) if logger is None else logger
 
         self.robot_name = robot_name
+        self.tool = RobotTool.SUCTION
     
     def __del__(self):
         if self.robot is not None:
@@ -73,16 +74,16 @@ class Meca500():
                 raise
         return False
 
-    def move_home(self, tool: RobotTool):
+    def move_home(self, tool: RobotTool = None):
+        if tool == None:
+            tool = self.tool
         self.logger.debug(f"{self.robot_name} moving to home with tool {tool.name}")
         if tool == RobotTool.SUCTION:
             self.robot.MoveJoints(*self.RobotConstants.HOME_SK_J)
         elif tool == RobotTool.GRIPPER:
             self.robot.MoveJoints(*self.RobotConstants.HOME_GP_J)
-        self.robot.WaitIdle(30)
-
-    def move_for_snapshot(self):
-        self.robot.MovePose(*self.RobotConstants.SNAP_SHOT_GRAB_PO)
+        elif tool == RobotTool.CAMERA:
+            self.robot.MoveJoints(*self.RobotConstants.HOME_CA_J)
         self.robot.WaitIdle(30)
 
     def draw_square(self):
