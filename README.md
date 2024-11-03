@@ -1,9 +1,10 @@
 # BatteryLab
+
 We aim to build an autonomous laboratory for manufacturing coin-cell batteries. This automated system accelerates the research process of discovering/testing new electrolytes by automatically assembling batches of CR2032 coin-cell batteries. It uses 3 robotic arms, a liquid dispensing module, a linear rail, multiple 3D printed parts, and several cameras to achieve automation.
 
 <figure>
   <img
-  src="figures/overview.PNG"
+  src="figures/Overview.png"
   alt="The BatteryLab Design">
   <figcaption>Figure 1. The physical design of the autonomous BatteryLab</figcaption>
 </figure>
@@ -12,7 +13,7 @@ We aim to build an autonomous laboratory for manufacturing coin-cell batteries. 
 
 > We assume that the hardware has been set up properly as illustrated in Figure 1. We will address the hardware requirement in the next section for users that want to build the system from scratch.
 
-The code base can be separated to two parts. 
+The code base can be separated to two parts.
 
 The first part is the `BatteryLab` directory, which contains code that directly controls the robot, suction system, linear rail, and all the utility functions that rely purely on Python. Users should create a virtual environment with `python -m venv lab_venv` to install the Python dependencies. Do not use conda environment because they work poorly with ROS 2.
 
@@ -41,7 +42,7 @@ You can ssh into each Raspberry Pi to launch each ROS 2 node or use the launch f
 
 > The launch file and the ROS 2 packages are still under development.
 
-Start all the necessary ROS 2 services by running the following commands on specified machines. Note that each of them should be run on different machines.
+Start all the necessary ROS 2 services by running the following commands on specified machines. Note that each of them should be run on different Raspberry Pis.
 
 ```bash
 # on the rail Raspberry Pi
@@ -63,7 +64,13 @@ ros2 run assembly_robot liquid_robot
 ros2 run assembly_robot crimper_robot
 ```
 
-We will develop a web-based UI for easier control with a graphical interface.
+Alternatively, you can run the general command-line app to run the whole assembly process with just one command.
+
+```bash
+ros2 run assembly_robot app
+```
+
+We plan to develop a web-based UI for easier control with a graphical interface.
 
 ## Hardware Requirements
 
@@ -78,7 +85,6 @@ We use the following hardware items. You do not need to use the identical items 
 - 2 Raspberry Pi 5s and 1 Raspberry Pi 4.
 - 1 [TOB-DF-160](https://www.tobmachine.com/coin-cell-crimping-machine_c134?gad_source=1&gclid=Cj0KCQjwrKu2BhDkARIsAD7GBov9F47aTY1ZMRAuWiKtbsL2JQtdZlmeonXlnT11z4B-JgYZ6LxH1a0aAs9AEALw_wcB) Battery Crimper.
 - Many self-designed 3D printable parts.
-
 
 ### The Assembly Robot
 
@@ -116,6 +122,7 @@ We use a second Meca500 to move the assembled battery to a crimper and then move
 ## Known Issues
 
 ### 1. prebuilt cv_bridge package is not compatible with Numpy 2.0
+
 <a name="known-issue-1"></a>
 We added a submodule to build the cv_bridge from source to fix this problem. You need to install the Boost Python library to build this package. The required packages can be installed by the following commands.
 
