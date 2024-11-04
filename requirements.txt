@@ -8,5 +8,5 @@ setuptools
 colcon-common-extensions
 rosdep
 lark
-empy
+empy==3.3.4
 matplotlib
