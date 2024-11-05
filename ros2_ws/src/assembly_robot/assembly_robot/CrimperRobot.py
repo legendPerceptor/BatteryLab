@@ -88,14 +88,19 @@ def crimper_robot_command_loop(robot: CrimperRobot):
         if input_str == "":
             break
         elif input_str == "P":
+            robot.crimper_robot.move_home(RobotTool.SUCTION)
             robot.crimper_robot.pick_up_from_assembly_post()
         elif input_str == "C":
+            robot.crimper_robot.move_home(RobotTool.SUCTION)
             robot.crimper_robot.drop_to_crimper()
         elif input_str == "D":
+            robot.crimper_robot.move_home(RobotTool.SUCTION)
             robot.crimper_robot.pick_up_from_crimper()
         elif input_str == "S":
+            robot.crimper_robot.move_home(RobotTool.SUCTION)
             robot.crimper_robot.put_to_storage()
         elif input_str == "G":
+            robot.crimper_robot.move_home(RobotTool.SUCTION)
             robot.crimp_a_battery(False)
             robot.drop_back_to_assembly_post()
             robot.move_home()

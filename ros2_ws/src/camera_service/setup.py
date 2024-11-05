@@ -21,7 +21,8 @@ setup(
     entry_points={
         'console_scripts': [
             "camera_server = camera_service.camera_server:main",
-            "camera_client = camera_service.camera_client:main"
+            "camera_client = camera_service.camera_client:main",
+            'camera_subscriber = camera_service.camera_subscriber:main'
         ],
     },
 )
